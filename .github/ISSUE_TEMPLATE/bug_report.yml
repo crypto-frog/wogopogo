@@ -1,0 +1,68 @@
+name: Bug report
+description: Report a reproducible problem in the Wogopogo software
+title: '[Bug]: '
+labels: ['bug', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve Wogopogo. Do not include credentials, management tokens, unpublished listings, client IP information, or other private data. Security issues must use private vulnerability reporting.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Start the application...
+        2. Open...
+        3. Select...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: v1.2.0 or commit SHA
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - React interface
+        - PHP API
+        - Database
+        - Search and structured data
+        - Deployment
+        - Documentation
+        - Accessibility
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, operating system, Node/PHP version, database driver, or hosting type as relevant.
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Safe diagnostic details
+      description: Paste only the smallest non-sensitive error output needed.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and pull requests.
+          required: true
+        - label: This report contains no credentials or private user data.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true
+

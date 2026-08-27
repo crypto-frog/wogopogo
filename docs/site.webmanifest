@@ -1,0 +1,17 @@
+{
+  "name": "Wogopogo Open Source",
+  "short_name": "Wogopogo",
+  "description": "Project site for the Wogopogo community job board.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#101215",
+  "theme_color": "#101215",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
+

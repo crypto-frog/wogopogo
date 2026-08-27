@@ -1,0 +1,38 @@
+# Dependencies and build output
+node_modules/
+frontend/dist/
+coverage/
+release-artifacts/
+.vite/
+
+# Local runtime data (SQLite db, rate limits, error log)
+backend/api/data/
+deploy/api/data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.log
+
+# Local-only config overrides (never commit credentials)
+config.local.php
+.env
+.env.local
+.env.*.local
+!.env.example
+!frontend/.env.mock
+
+# Private operational material
+backups/
+database-exports/
+*.pem
+*.key
+*.p12
+*.pfx
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/

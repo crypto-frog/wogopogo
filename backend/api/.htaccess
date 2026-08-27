@@ -1,0 +1,14 @@
+# Wogopogo API rewrites: send /api/anything to index.php
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# Never serve the database or logs over the web
+<IfModule mod_rewrite.c>
+    RewriteRule ^data/ - [F,L]
+</IfModule>
+<FilesMatch "\.(sqlite|log)$">
+    Require all denied
+</FilesMatch>

@@ -1,0 +1,41 @@
+name: Feature proposal
+description: Propose a focused improvement with a clear community benefit
+title: '[Proposal]: '
+labels: ['enhancement', 'discussion']
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Community need
+      description: What problem would this solve, and for whom?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed approach
+      description: Describe the smallest useful version.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: operations
+    attributes:
+      label: Operational impact
+      description: Consider moderation, privacy, abuse, accessibility, hosting, migrations, and long-term maintenance.
+    validations:
+      required: true
+  - type: checkboxes
+    id: principles
+    attributes:
+      label: Project fit
+      options:
+        - label: The proposal preserves an account-free browsing experience.
+        - label: The proposal can run within the documented hosting model, or explains a justified change.
+        - label: The proposal does not require collecting unnecessary personal information.
+        - label: I searched existing issues, discussions, and the roadmap.
+          required: true
+

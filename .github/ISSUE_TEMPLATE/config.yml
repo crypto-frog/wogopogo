@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Setup and contributor questions
+    url: https://github.com/crypto-frog/wogopogo/discussions
+    about: Ask for help or discuss an idea before filing an issue.
+  - name: Private security report
+    url: https://github.com/crypto-frog/wogopogo/security/advisories/new
+    about: Report vulnerabilities privately. Do not disclose them in an issue.
+

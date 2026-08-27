@@ -1,0 +1,27 @@
+{
+  "name": "wogopogo",
+  "private": true,
+  "version": "1.2.0",
+  "description": "Account-free community job board for the Okanagan Valley",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:mock": "vite --mode mock",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "react-router-dom": "7.18.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "6.0.2",
+    "vite": "8.2.2"
+  }
+}

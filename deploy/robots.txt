@@ -1,0 +1,26 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# Search and user-request crawlers are welcome on public pages.
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+
+User-agent: Perplexity-User
+Allow: /
+Disallow: /api/
+
+# Search visibility is independent from model-training permission.
+User-agent: GPTBot
+Disallow: /
+
+Sitemap: https://wogopogo.ca/sitemap.xml

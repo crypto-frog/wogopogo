@@ -1,0 +1,43 @@
+# Wogopogo root .htaccess
+# 1. Requests to /api/* go to the PHP API.
+# 2. Real files (assets, favicon) are served as-is.
+# 3. Everything else falls back to index.html so React Router works
+#    on refresh and on shared links like /job/42.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Keep one canonical host so .com and www do not compete with wogopogo.ca.
+    RewriteCond %{HTTP_HOST} ^(www\.)?wogopogo\.com$ [NC,OR]
+    RewriteCond %{HTTP_HOST} ^www\.wogopogo\.ca$ [NC]
+    RewriteRule ^ https://wogopogo.ca%{REQUEST_URI} [R=301,L]
+
+    # Uncomment these two lines to force HTTPS once your free SSL
+    # certificate is active in Bluehost (recommended):
+    # RewriteCond %{HTTPS} !=on
+    # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+    RewriteRule ^api/ - [L]
+    RewriteRule ^sitemap\.xml$ sitemap.php [L]
+    RewriteRule ^job/([0-9]+)/?$ job.php?id=$1 [L,QSA]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . /index.html [L]
+</IfModule>
+
+# Baseline browser protections. These are supported by standard Bluehost Apache.
+<IfModule mod_setenvif.c>
+    SetEnvIf Request_URI "^/(admin|manage)(/|$)" wogo_private_page=1
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Header always set X-Robots-Tag "noindex, nofollow" env=wogo_private_page
+
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+</IfModule>
