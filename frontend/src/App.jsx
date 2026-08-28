@@ -39,6 +39,7 @@ function RouteSeo() {
         description:
           'Reach local candidates across the Okanagan Valley. Post a job on Wogopogo for free, with no employer account required.',
         pathname: '/post',
+        robots: 'noindex, follow',
       })
       return
     }

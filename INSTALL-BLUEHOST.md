@@ -100,7 +100,7 @@ If all six checks pass, you are live.
 3. Inspect the homepage and one approved `/job/{id}` URL, then request indexing.
 4. Test an approved job page in Google's Rich Results Test and confirm that a `JobPosting` item is detected.
 
-The sitemap contains the homepage, the public posting page, and every approved, unexpired job. A new board with no active listings therefore reports two discovered pages. Private `/admin` and `/manage` utilities are deliberately excluded.
+The sitemap contains the homepage and every approved, unexpired job. A new board with no active listings therefore reports one discovered page, and the count grows automatically as genuine job pages are approved. The posting form and private `/admin` and `/manage` utilities remain available to visitors who need them but are deliberately excluded from search results and the sitemap.
 
 `robots.txt` explicitly permits OAI-SearchBot, ChatGPT-User, PerplexityBot, and Perplexity-User on public pages. If Google Search Console reports “Couldn’t fetch,” or AI search crawlers receive a Cloudflare challenge, the application files are not the cause: configure Cloudflare to allow verified Google crawlers and the official crawler IP ranges. Verify IP addresses as well as user-agent names; a user-agent string alone can be spoofed.
 

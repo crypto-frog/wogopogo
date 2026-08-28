@@ -50,7 +50,6 @@ function wogo_sitemap_date(string $value): ?string
 echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 echo '  <url><loc>' . wogo_sitemap_escape($baseUrl . '/') . '</loc></url>' . "\n";
-echo '  <url><loc>' . wogo_sitemap_escape($baseUrl . '/post') . '</loc></url>' . "\n";
 
 foreach ($jobs as $job) {
     $location = $baseUrl . '/job/' . (int) $job['id'];

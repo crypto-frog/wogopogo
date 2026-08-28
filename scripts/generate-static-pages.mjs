@@ -89,6 +89,7 @@ const post = replaceRoot(
     title: 'Post an Okanagan Job for Free | Wogopogo',
     description: postDescription,
     canonical: 'https://wogopogo.ca/post',
+    robots: 'noindex, follow',
   }),
   postFallback
 )
