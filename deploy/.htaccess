@@ -27,10 +27,10 @@
     RewriteRule ^assets/ - [L]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^ - [R=404,L]
+    RewriteRule ^ 404.php [L,QSA]
 </IfModule>
 
-ErrorDocument 404 /404.html
+ErrorDocument 404 /404.php
 
 # Baseline browser protections. These are supported by standard Bluehost Apache.
 <IfModule mod_setenvif.c>
@@ -43,6 +43,13 @@ ErrorDocument 404 /404.html
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
     Header always set X-Robots-Tag "noindex, nofollow" env=wogo_private_page
+
+    <FilesMatch "^(?:index|post|404)\.html$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+    </FilesMatch>
+
+    SetEnvIf Request_URI "^/assets/" wogo_hashed_asset
+    Header set Cache-Control "public, max-age=31536000, immutable" env=wogo_hashed_asset
 
     <FilesMatch "\.(css|js)$">
         Header set Cache-Control "public, max-age=31536000, immutable"

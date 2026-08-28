@@ -113,7 +113,7 @@ Frontend changes (design, text, pages):
 
 Backend changes: upload the changed file from `backend/api/` into `public_html/api/`. Never overwrite your live `config.php` with the one from the zip, since the live one holds your real credentials.
 
-Search-rendering changes: upload the corresponding `job.php`, `sitemap.php`, `robots.txt`, `llms.txt`, and root `.htaccess` files from `deploy/`. The sitemap uses the existing API configuration and database; it does not have separate credentials.
+Search-rendering changes: upload the corresponding `job.php`, `404.php`, `sitemap.php`, `robots.txt`, `llms.txt`, and root `.htaccess` files from `deploy/`. The sitemap uses the existing API configuration and database; it does not have separate credentials.
 
 Your data lives in MySQL, so replacing files never touches the jobs.
 
