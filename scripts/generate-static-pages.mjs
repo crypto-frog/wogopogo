@@ -74,6 +74,15 @@ const notFoundFallback = `
         <p><a href="/">Browse current Okanagan jobs</a></p>
       </main>`
 
+function privateFallback(title, description) {
+  return `
+      <main id="main-content" class="shell page page-narrow">
+        <h1 class="page-title">${title}</h1>
+        <p class="lede">${description}</p>
+        <p><a href="/">Return to current Okanagan jobs</a></p>
+      </main>`
+}
+
 const home = replaceRoot(shell, homeFallback)
 const post = replaceRoot(
   pageShell({
@@ -92,9 +101,29 @@ const notFound = replaceRoot(
   }),
   notFoundFallback
 )
+const manage = replaceRoot(
+  pageShell({
+    title: 'Manage a Listing | Wogopogo',
+    description: 'Private Wogopogo listing-management utility.',
+    canonical: 'https://wogopogo.ca/manage',
+    robots: 'noindex, nofollow',
+  }),
+  privateFallback('Manage a listing', 'Use the private manage token supplied when the listing was submitted.')
+)
+const admin = replaceRoot(
+  pageShell({
+    title: 'Moderation | Wogopogo',
+    description: 'Private Wogopogo moderation utility.',
+    canonical: 'https://wogopogo.ca/admin',
+    robots: 'noindex, nofollow',
+  }),
+  privateFallback('Moderation', 'This is the private Wogopogo moderation utility.')
+)
 
 fs.writeFileSync(indexPath, home)
 fs.writeFileSync(path.join(distDirectory, 'post.html'), post)
+fs.writeFileSync(path.join(distDirectory, 'manage.html'), manage)
+fs.writeFileSync(path.join(distDirectory, 'admin.html'), admin)
 fs.writeFileSync(path.join(distDirectory, '404.html'), notFound)
 
-console.log('Generated server-delivered HTML for /, /post, and 404 responses.')
+console.log('Generated server-delivered HTML for public, private, and 404 routes.')

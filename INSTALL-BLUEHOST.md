@@ -109,7 +109,7 @@ The sitemap contains the homepage, the public posting page, and every approved, 
 Frontend changes (design, text, pages):
 
 1. Run `npm run build` in the `frontend` folder.
-2. Upload the contents of `frontend/dist/` to `public_html`, replacing matching files. This includes `index.html`, `post.html`, `404.html`, `assets/`, `robots.txt`, `llms.txt`, and the favicon. Deleting the old `assets` folder first keeps things tidy, since built filenames change with every build.
+2. Upload the contents of `frontend/dist/` to `public_html`, replacing matching files. This includes `index.html`, `post.html`, `manage.html`, `admin.html`, `404.html`, `assets/`, `robots.txt`, `llms.txt`, and the favicon. Deleting the old `assets` folder first keeps things tidy, since built filenames change with every build.
 
 Backend changes: upload the changed file from `backend/api/` into `public_html/api/`. Never overwrite your live `config.php` with the one from the zip, since the live one holds your real credentials.
 

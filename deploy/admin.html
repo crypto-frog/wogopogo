@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en-CA">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Moderation | Wogopogo</title>
+    <meta name="description" content="Private Wogopogo moderation utility." />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="googlebot" content="noindex, nofollow" />
+    <meta property="og:title" content="Moderation | Wogopogo" />
+    <meta property="og:description" content="Private Wogopogo moderation utility." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://wogopogo.ca/admin" />
+    <meta property="og:site_name" content="Wogopogo" />
+    <meta property="og:locale" content="en_CA" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Moderation | Wogopogo" />
+    <meta name="twitter:description" content="Private Wogopogo moderation utility." />
+    <meta name="theme-color" content="#111318" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <link rel="canonical" href="https://wogopogo.ca/admin" />
+    <link rel="alternate" hreflang="en-CA" href="https://wogopogo.ca/admin" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <script id="wogo-site-schema" type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://wogopogo.ca/#organization",
+            "name": "Wogopogo",
+            "url": "https://wogopogo.ca/",
+            "description": "A free, locally focused job board serving the Okanagan Valley in British Columbia, Canada.",
+            "areaServed": {
+              "@type": "AdministrativeArea",
+              "name": "Okanagan Valley, British Columbia, Canada"
+            }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://wogopogo.ca/#website",
+            "url": "https://wogopogo.ca/",
+            "name": "Wogopogo",
+            "inLanguage": "en-CA",
+            "publisher": { "@id": "https://wogopogo.ca/#organization" }
+          }
+        ]
+      }
+    </script>
+
+    <!-- Set the theme before first paint so there is no flash -->
+    <script>
+      try {
+        var t = localStorage.getItem('wogo-theme')
+        var c = localStorage.getItem('wogo-tint')
+        var allowedTints = ['neutral', 'lake', 'cobalt', 'violet', 'rose', 'ember', 'forest']
+        var tint = allowedTints.indexOf(c) >= 0 ? c : 'neutral'
+        var darkChrome = {
+          neutral: '#111318', lake: '#101918', cobalt: '#111721', violet: '#16141E',
+          rose: '#1B1418', ember: '#1A1612', forest: '#111914'
+        }
+        var lightChrome = {
+          neutral: '#EEEDE9', lake: '#EDEFEC', cobalt: '#EDEFF1', violet: '#F0EEF1',
+          rose: '#F1EDEF', ember: '#F1EFEC', forest: '#EDEFED'
+        }
+        document.documentElement.dataset.theme = t === 'light' ? 'light' : 'dark'
+        document.documentElement.dataset.tint = tint
+        document.querySelector('meta[name="theme-color"]').content =
+          t === 'light' ? lightChrome[tint] : darkChrome[tint]
+      } catch (e) {
+        document.documentElement.dataset.theme = 'dark'
+        document.documentElement.dataset.tint = 'neutral'
+      }
+      // Monetization master switch: set to true after pasting your ad
+      // network code into src/components/AdSlot.jsx (see MONETIZATION.md)
+      window.WOGO_ADS_ENABLED = false
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script type="module" crossorigin src="/assets/index-CoRTpdcH.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-D3RKXp-P.css">
+  </head>
+  <body>
+    <div id="root">
+      <main id="main-content" class="shell page page-narrow">
+        <h1 class="page-title">Moderation</h1>
+        <p class="lede">This is the private Wogopogo moderation utility.</p>
+        <p><a href="/">Return to current Okanagan jobs</a></p>
+      </main></div>
+  </body>
+</html>
