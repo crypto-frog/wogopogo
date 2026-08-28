@@ -95,10 +95,12 @@ If all six checks pass, you are live.
 
 ## Google Search Console and AI search
 
-1. Add and verify the `https://wogopogo.ca/` property in Google Search Console.
+1. Add and verify the `wogopogo.ca` Domain property in Google Search Console using its DNS TXT record.
 2. Open Sitemaps and submit `sitemap.xml`.
 3. Inspect the homepage and one approved `/job/{id}` URL, then request indexing.
 4. Test an approved job page in Google's Rich Results Test and confirm that a `JobPosting` item is detected.
+
+The sitemap contains the homepage, the public posting page, and every approved, unexpired job. A new board with no active listings therefore reports two discovered pages. Private `/admin` and `/manage` utilities are deliberately excluded.
 
 `robots.txt` explicitly permits OAI-SearchBot, ChatGPT-User, PerplexityBot, and Perplexity-User on public pages. If Google Search Console reports “Couldn’t fetch,” or AI search crawlers receive a Cloudflare challenge, the application files are not the cause: configure Cloudflare to allow verified Google crawlers and the official crawler IP ranges. Verify IP addresses as well as user-agent names; a user-agent string alone can be spoofed.
 
@@ -107,7 +109,7 @@ If all six checks pass, you are live.
 Frontend changes (design, text, pages):
 
 1. Run `npm run build` in the `frontend` folder.
-2. Upload the contents of `frontend/dist/` to `public_html`, replacing matching files. This includes `index.html`, `assets/`, `robots.txt`, `llms.txt`, and the favicon. Deleting the old `assets` folder first keeps things tidy, since built filenames change with every build.
+2. Upload the contents of `frontend/dist/` to `public_html`, replacing matching files. This includes `index.html`, `post.html`, `404.html`, `assets/`, `robots.txt`, `llms.txt`, and the favicon. Deleting the old `assets` folder first keeps things tidy, since built filenames change with every build.
 
 Backend changes: upload the changed file from `backend/api/` into `public_html/api/`. Never overwrite your live `config.php` with the one from the zip, since the live one holds your real credentials.
 

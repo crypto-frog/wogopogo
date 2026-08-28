@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../api.js'
 import { useMeta } from '../MetaContext.jsx'
 import { Lakeline, SerpentPeek } from '../components/Serpent.jsx'
@@ -237,12 +237,17 @@ export default function Home() {
         ) : data && data.jobs.length === 0 ? (
           <div className="empty">
             <SerpentPeek />
-            <h2>No jobs found</h2>
+            <h2>{hasFilters ? 'No jobs match these filters' : 'The board is ready for its first listing'}</h2>
             <p className="muted">
               {hasFilters
                 ? 'Nothing matches those filters. Cast a wider net.'
-                : 'No live listings yet. Yours could be the first.'}
+                : 'Wogopogo is open to Okanagan employers. Posting is free, requires no account, and every listing is reviewed before it appears.'}
             </p>
+            {!hasFilters && (
+              <Link className="btn btn-primary" to="/post">
+                Post a job for free
+              </Link>
+            )}
           </div>
         ) : data ? (
           <>
@@ -287,6 +292,31 @@ export default function Home() {
         ) : null}
 
         <AdSlot slot="home" />
+      </section>
+
+      <section className="home-guide" aria-labelledby="home-guide-title">
+        <div className="shell">
+          <p className="mono home-guide-kicker">How Wogopogo works</p>
+          <h2 id="home-guide-title">A straightforward Okanagan job board</h2>
+          <p className="home-guide-intro">
+            Browse approved, current opportunities across the Okanagan Valley. Employers can
+            post directly, and job seekers can search without creating an account.
+          </p>
+          <div className="home-guide-grid">
+            <article>
+              <h3>For job seekers</h3>
+              <p>Search by keyword, category, location, or job type. Applications go directly to the employer.</p>
+            </article>
+            <article>
+              <h3>For employers</h3>
+              <p>Post a local role for free, keep the private manage token, and close the listing when it is filled.</p>
+            </article>
+            <article>
+              <h3>Local coverage</h3>
+              <p>Wogopogo serves communities from Osoyoos to Salmon Arm, including Kelowna and Vernon.</p>
+            </article>
+          </div>
+        </div>
       </section>
     </>
   )

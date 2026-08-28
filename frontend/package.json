@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "vite",
     "dev:mock": "vite --mode mock",
-    "build": "vite build",
+    "build": "vite build && node ../scripts/generate-static-pages.mjs",
     "preview": "vite preview",
     "test": "node --test"
   },

@@ -47,7 +47,9 @@ if (configs[0] && configs[1] && configs[0] !== configs[1]) {
 
 const requiredDeployFiles = [
   'deploy/.htaccess',
+  'deploy/404.html',
   'deploy/index.html',
+  'deploy/post.html',
   'deploy/job.php',
   'deploy/sitemap.php',
   'deploy/robots.txt',

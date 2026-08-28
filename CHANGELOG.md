@@ -14,6 +14,9 @@ Notable project changes are recorded here. The format is inspired by Keep a Chan
 ### Changed
 
 - Updated React, React Router, Vite, and the React Vite plugin to supported releases with no npm audit findings
+- Added server-delivered homepage and posting-page content to prevent soft-404 classification
+- Return honest 404 responses for unknown routes and canonicalize HTTPS, host, and build-file URL variants
+- Clarified that the sitemap grows with approved, unexpired job listings
 
 ## [1.2.0] - 2026-08-27
 
