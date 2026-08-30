@@ -150,7 +150,7 @@ export default function PostJob() {
             <button type="button" className="btn btn-primary" onClick={copyToken}>
               {copied ? 'Copied' : 'Copy token'}
             </button>
-            <Link className="btn btn-ghost" to={`/job/${result.id}?token=${result.manage_token}`}>
+            <Link className="btn btn-ghost" to={`/jobs/${result.id}/listing?token=${result.manage_token}`}>
               {pending ? 'Preview listing' : 'View listing'}
             </Link>
             <Link className="btn btn-ghost" to={`/manage?id=${result.id}&token=${result.manage_token}`}>

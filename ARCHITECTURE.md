@@ -8,7 +8,8 @@ Wogopogo is a two-layer web application designed for community-scale operation o
 - **PHP API:** validation, lifecycle rules, moderation authorization, rate limiting, and persistence
 - **MySQL:** production data store
 - **SQLite:** local development data store
-- **PHP job renderer:** public HTML and structured data for `/job/{id}`
+- **PHP homepage renderer:** live crawlable links for approved, unexpired jobs
+- **PHP job renderer:** public HTML and structured data for `/jobs/{id}/{job-title}`
 - **Apache configuration:** canonical redirects, routing, security headers, and file protections
 
 The hosted service uses static frontend assets. Node.js is a build tool, not a production runtime.
@@ -40,10 +41,18 @@ The hosted service uses static frontend assets. Node.js is a build tool, not a p
 
 ### Public job rendering
 
-1. Apache routes `/job/{id}` to `job.php`.
+1. Apache routes `/jobs/{id}/{job-title}` to `job.php`; legacy numeric routes redirect to the descriptive canonical URL.
 2. The renderer reads the approved, unexpired listing through the application database layer.
 3. It emits descriptive HTML, canonical and social metadata, and JobPosting JSON-LD.
 4. The React bundle loads and provides the interactive page.
+
+### Sitemap lifecycle
+
+1. The sitemap reads approved jobs whose expiry is still in the future.
+2. Every entry uses the same descriptive canonical URL as the job renderer and an accurate content `lastmod` timestamp.
+3. Approval or renewal adds or refreshes an entry; closing, deletion, or expiry removes it automatically.
+4. Closed or expired job pages return `410 Gone`, while unknown URLs return `404 Not Found`.
+5. A temporary database failure returns `503` instead of an empty sitemap, preventing a crawler from mistaking an outage for mass removal.
 
 ## Data model
 
@@ -84,4 +93,3 @@ The repository safety script verifies that committed templates remain inert and 
 ## Deployment boundary
 
 The `deploy/` directory contains a complete static application, API, renderer, sitemap, and Apache rules. It does not contain production credentials or data. Deployment is a maintainer-controlled operation and is not performed automatically when code merges.
-

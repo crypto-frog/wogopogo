@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../api.js'
-import { copyText, parseUtc, shortDate, timeAgo } from '../util.js'
+import { copyText, jobPath, parseUtc, shortDate, timeAgo } from '../util.js'
 import { SerpentPeek } from '../components/Serpent.jsx'
 import AdSlot from '../components/AdSlot.jsx'
 import { applySeo, conciseDescription, removeStructuredData, setStructuredData } from '../seo.js'
@@ -38,7 +38,7 @@ function jobPostingSchema(job) {
       '@type': 'Organization',
       name: job.company,
     },
-    url: `https://wogopogo.ca/job/${job.id}`,
+    url: `https://wogopogo.ca${jobPath(job)}`,
   }
 
   if (isRemote) {
@@ -87,7 +87,7 @@ export default function JobDetail() {
         const expiry = parseUtc(d.job.expires_at)
         const isLive =
           d.job.status === 'approved' && expiry && expiry.getTime() > Date.now()
-        const pathname = `/job/${d.job.id}`
+        const pathname = jobPath(d.job)
         const description = conciseDescription(
           `${d.job.title} at ${d.job.company} in ${d.job.location}. ${d.job.description}`
         )
@@ -116,7 +116,7 @@ export default function JobDetail() {
         applySeo({
           title: 'Job Listing Not Found | Wogopogo',
           description: 'This Wogopogo job listing is no longer available.',
-          pathname: `/job/${id}`,
+          pathname: `/jobs/${id}/job`,
           robots: 'noindex, nofollow',
         })
       })
@@ -127,7 +127,7 @@ export default function JobDetail() {
 
   async function share() {
     setShareError('')
-    const url = `${window.location.origin}/job/${id}`
+    const url = `${window.location.origin}${jobPath(job || { id, title: 'job' })}`
     if (await copyText(url)) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)

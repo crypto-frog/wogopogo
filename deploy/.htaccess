@@ -1,8 +1,8 @@
 # Wogopogo root .htaccess
 # 1. Requests to /api/* go to the PHP API.
 # 2. Real files (assets, favicon) are served as-is.
-# 3. Everything else falls back to index.html so React Router works
-#    on refresh and on shared links like /job/42.
+# 3. Public home and job routes use PHP renderers so their first response is
+#    crawlable; the React application takes over for interactive visitors.
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
@@ -23,7 +23,10 @@
     RewriteRule ^admin\.html$ /admin [R=301,L]
 
     RewriteRule ^api/ - [L]
+    RewriteRule ^$ home.php [L]
     RewriteRule ^sitemap\.xml$ sitemap.php [L]
+    RewriteRule ^jobs/([0-9]+)/([a-z0-9-]+)/?$ job.php?id=$1&slug=$2 [L,QSA]
+    RewriteRule ^jobs/([0-9]+)/?$ job.php?id=$1 [L,QSA]
     RewriteRule ^job/([0-9]+)/?$ job.php?id=$1 [L,QSA]
     RewriteRule ^post/?$ post.html [L]
     RewriteRule ^manage/?$ manage.html [L]

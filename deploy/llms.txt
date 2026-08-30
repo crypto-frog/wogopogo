@@ -6,10 +6,10 @@
 
 - [Browse current Okanagan jobs](https://wogopogo.ca/): Search approved, unexpired local job listings.
 - [Post an Okanagan job](https://wogopogo.ca/post): Submit a local job listing for moderation at no charge.
-- [Current public URLs](https://wogopogo.ca/sitemap.xml): Live XML sitemap containing the homepage, posting page, and every approved, unexpired job listing.
+- [Current public URLs](https://wogopogo.ca/sitemap.xml): Live XML sitemap containing the homepage and every approved, unexpired job listing.
 
 ## Coverage
 
 Wogopogo covers communities from Osoyoos through Salmon Arm, including Kelowna, West Kelowna, Lake Country, Vernon, Penticton, Summerland, Peachland, Oliver, and nearby Okanagan communities.
 
-Individual job pages use stable URLs in the form `https://wogopogo.ca/job/{id}`. Only approved and unexpired listings are public or included in the sitemap.
+Individual job pages use stable, descriptive URLs in the form `https://wogopogo.ca/jobs/{id}/{job-title}`. The numeric ID preserves identity and the title slug makes the subject clear to people, crawlers, and AI systems. Only approved and unexpired listings are public or included in the sitemap; closed and expired URLs return `410 Gone`.

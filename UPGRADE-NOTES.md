@@ -1,4 +1,10 @@
-# Wogopogo 1.2 upgrade notes
+# Wogopogo 1.3 upgrade notes
+
+Version 1.3 adds the optional Lake Dash microgame and moves live job listings to descriptive, server-rendered URLs. The database migrates automatically to schema version 2 by adding `updated_at`, which powers accurate sitemap `lastmod` values. Existing `/job/{id}` links redirect to the new canonical route, and no production job data or server-only configuration needs to be replaced.
+
+The dynamic homepage now exposes direct job links without requiring JavaScript. The sitemap grows on approval and renewal, shrinks on close, deletion, or expiry, and returns a temporary error rather than an empty URL set during a database outage. Closed or expired job pages return `410 Gone` to accelerate search cleanup.
+
+## Previous 1.2 changes
 
 This release preserves the original Okanagan-lake visual identity while making the interface more polished, restrained, searchable, accessible, and production-ready.
 
@@ -43,7 +49,7 @@ This release preserves the original Okanagan-lake visual identity while making t
 
 ## Search and machine-readable discovery
 
-- Added a database-driven XML sitemap containing the homepage, posting page, and every approved, unexpired job.
+- Added a database-driven XML sitemap containing the homepage and every approved, unexpired job.
 - Added server-rendered job text and Google `JobPosting` JSON-LD for every public job URL.
 - Added canonical URLs, route-specific titles and descriptions, social metadata, organization and website JSON-LD, Canadian language metadata, and no-index protection for private utility routes.
 - Added crawler-aware `robots.txt` rules, sitemap discovery, and a concise `llms.txt` resource. Search crawlers are permitted; GPTBot training access is independently disabled.

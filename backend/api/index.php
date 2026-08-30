@@ -255,12 +255,12 @@ if ($route === 'jobs' && $method === 'POST') {
 
     $pdo->prepare(
         'INSERT INTO jobs (title, company, category_id, location, job_type, pay, description,
-                           apply_email, apply_url, status, tier, manage_hash, created_at, expires_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                           apply_email, apply_url, status, tier, manage_hash, created_at, updated_at, expires_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )->execute([
         $title, $company, $catId, $loc, $type, $pay, $desc,
         $email, $url, $status, 'free',
-        hash('sha256', $token), $now,
+        hash('sha256', $token), $now, $now,
         gmdate('Y-m-d H:i:s', time() + $life * 86400),
     ]);
 
@@ -311,7 +311,8 @@ if (count($parts) >= 2 && $parts[0] === 'jobs' && ctype_digit($parts[1])) {
             wogo_error('That manage token does not match this listing.', 401);
         }
         if ($action === 'close') {
-            $pdo->prepare("UPDATE jobs SET status = 'closed' WHERE id = ?")->execute([$jobId]);
+            $pdo->prepare("UPDATE jobs SET status = 'closed', updated_at = ? WHERE id = ?")
+                ->execute([wogo_now(), $jobId]);
             wogo_respond(['ok' => true, 'status' => 'closed']);
         }
         if ($action === 'delete') {
@@ -353,6 +354,7 @@ if (count($parts) === 3 && $parts[0] === 'admin' && $parts[1] === 'jobs'
     $jobId  = (int) $parts[2];
     $action = (string) ($in['action'] ?? '');
     $life   = (int) $cfg['job_lifetime_days'];
+    $now    = wogo_now();
 
     $exists = $pdo->prepare('SELECT id FROM jobs WHERE id = ?');
     $exists->execute([$jobId]);
@@ -363,27 +365,31 @@ if (count($parts) === 3 && $parts[0] === 'admin' && $parts[1] === 'jobs'
     switch ($action) {
         case 'approve':
             // Approval starts the clock so review time never eats the listing window
-            $pdo->prepare("UPDATE jobs SET status = 'approved', expires_at = ? WHERE id = ?")
-                ->execute([gmdate('Y-m-d H:i:s', time() + $life * 86400), $jobId]);
+            $pdo->prepare("UPDATE jobs SET status = 'approved', expires_at = ?, updated_at = ? WHERE id = ?")
+                ->execute([gmdate('Y-m-d H:i:s', time() + $life * 86400), $now, $jobId]);
             break;
         case 'reject':
-            $pdo->prepare("UPDATE jobs SET status = 'rejected' WHERE id = ?")->execute([$jobId]);
+            $pdo->prepare("UPDATE jobs SET status = 'rejected', updated_at = ? WHERE id = ?")
+                ->execute([$now, $jobId]);
             break;
         case 'feature':
             if (empty($cfg['featured_enabled'])) {
                 wogo_error('Featured listings are switched off in config.php.', 400);
             }
-            $pdo->prepare("UPDATE jobs SET tier = 'featured' WHERE id = ?")->execute([$jobId]);
+            $pdo->prepare("UPDATE jobs SET tier = 'featured', updated_at = ? WHERE id = ?")
+                ->execute([$now, $jobId]);
             break;
         case 'unfeature':
-            $pdo->prepare("UPDATE jobs SET tier = 'free' WHERE id = ?")->execute([$jobId]);
+            $pdo->prepare("UPDATE jobs SET tier = 'free', updated_at = ? WHERE id = ?")
+                ->execute([$now, $jobId]);
             break;
         case 'close':
-            $pdo->prepare("UPDATE jobs SET status = 'closed' WHERE id = ?")->execute([$jobId]);
+            $pdo->prepare("UPDATE jobs SET status = 'closed', updated_at = ? WHERE id = ?")
+                ->execute([$now, $jobId]);
             break;
         case 'renew':
-            $pdo->prepare('UPDATE jobs SET expires_at = ? WHERE id = ?')
-                ->execute([gmdate('Y-m-d H:i:s', time() + $life * 86400), $jobId]);
+            $pdo->prepare('UPDATE jobs SET expires_at = ?, updated_at = ? WHERE id = ?')
+                ->execute([gmdate('Y-m-d H:i:s', time() + $life * 86400), $now, $jobId]);
             break;
         case 'delete':
             $pdo->prepare('DELETE FROM jobs WHERE id = ?')->execute([$jobId]);

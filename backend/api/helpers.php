@@ -147,6 +147,19 @@ function wogo_require_admin(array $cfg): void
 }
 
 /** Public shape of a job row (never leaks manage_hash). */
+function wogo_slugify(string $value): string
+{
+    $ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
+    $normalized = strtolower($ascii === false ? $value : $ascii);
+    $slug = trim((string) preg_replace('/[^a-z0-9]+/', '-', $normalized), '-');
+    return $slug === '' ? 'job' : substr($slug, 0, 80);
+}
+
+function wogo_job_path(int $id, string $title): string
+{
+    return '/jobs/' . $id . '/' . wogo_slugify($title);
+}
+
 function wogo_job_public(array $row, bool $withDescription = true): array
 {
     $out = [
@@ -165,7 +178,9 @@ function wogo_job_public(array $row, bool $withDescription = true): array
         'tier'       => $row['tier'],
         'status'     => $row['status'],
         'created_at' => $row['created_at'],
+        'updated_at' => $row['updated_at'] ?? $row['created_at'],
         'expires_at' => $row['expires_at'],
+        'url_path'   => wogo_job_path((int) $row['id'], (string) $row['title']),
     ];
     if ($withDescription) {
         $out['description'] = $row['description'];

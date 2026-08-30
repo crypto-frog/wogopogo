@@ -47,6 +47,23 @@ export async function copyText(text) {
   }
 }
 
+export function slugify(value) {
+  const slug = String(value || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80)
+  return slug || 'job'
+}
+
+export function jobPath(job) {
+  const id = Number(job?.id)
+  const safeId = Number.isSafeInteger(id) && id > 0 ? id : 0
+  return `/jobs/${safeId}/${slugify(job?.title)}`
+}
+
 // Poster convenience: keep the manage tokens for jobs posted from this
 // browser so the Manage page can list them.
 const MY_POSTS_KEY = 'wogo-my-posts'

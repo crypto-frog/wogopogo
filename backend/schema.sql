@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     tier        VARCHAR(20)  NOT NULL DEFAULT 'free',     -- free | featured  (monetization hook)
     manage_hash CHAR(64)     NOT NULL,                    -- sha256 of the poster's manage token
     created_at  VARCHAR(19)  NOT NULL,                    -- UTC 'Y-m-d H:i:s'
+    updated_at  VARCHAR(19)  NOT NULL,
     expires_at  VARCHAR(19)  NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -44,4 +45,4 @@ CREATE INDEX idx_jobs_created ON jobs (created_at);
 CREATE INDEX idx_rate_ip      ON rate_limits (ip, created_at);
 CREATE INDEX idx_rate_created ON rate_limits (created_at);
 
-REPLACE INTO app_meta (meta_key, meta_value) VALUES ('schema_version', '1');
+REPLACE INTO app_meta (meta_key, meta_value) VALUES ('schema_version', '2');

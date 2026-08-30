@@ -72,7 +72,7 @@ Optional settings in the same file, safe to leave as they are:
 3. Navigate to `public_html` (or the subfolder for your addon domain).
 4. Verify that this is the document root for the intended domain. If it contains files, export the associated database and archive the complete directory outside the public root before changing anything. Do not alter an unrelated or shared website.
 5. For a new, verified installation only, move any placeholder file into the private backup rather than deleting it.
-6. On your computer, compress the CONTENTS of the private deployment copy into a zip. You want `index.html`, `.htaccess`, `assets`, `api`, `job.php`, `sitemap.php`, `favicon.svg`, `robots.txt`, and `llms.txt` at the top level of the zip, not nested inside a `deploy` folder.
+6. On your computer, compress the CONTENTS of the private deployment copy into a zip. You want `index.html`, `.htaccess`, `assets`, `api`, `home.php`, `job.php`, `sitemap.php`, `favicon.svg`, `robots.txt`, and `llms.txt` at the top level of the zip, not nested inside a `deploy` folder.
 7. In File Manager, click Upload, upload that zip into the verified document root, go back, right click the zip, choose Extract, then remove the uploaded archive after successful verification.
 8. Confirm you can see `.htaccess` in the document root and another one inside `api/`. If they are missing, hidden files are not shown or the zip was built without them.
 
@@ -97,7 +97,7 @@ If all six checks pass, you are live.
 
 1. Add and verify the `wogopogo.ca` Domain property in Google Search Console using its DNS TXT record.
 2. Open Sitemaps and submit `sitemap.xml`.
-3. Inspect the homepage and one approved `/job/{id}` URL, then request indexing.
+3. Inspect the homepage and one approved `/jobs/{id}/{job-title}` URL, then request indexing.
 4. Test an approved job page in Google's Rich Results Test and confirm that a `JobPosting` item is detected.
 
 The sitemap contains the homepage and every approved, unexpired job. A new board with no active listings therefore reports one discovered page, and the count grows automatically as genuine job pages are approved. The posting form and private `/admin` and `/manage` utilities remain available to visitors who need them but are deliberately excluded from search results and the sitemap.
@@ -113,7 +113,7 @@ Frontend changes (design, text, pages):
 
 Backend changes: upload the changed file from `backend/api/` into `public_html/api/`. Never overwrite your live `config.php` with the one from the zip, since the live one holds your real credentials.
 
-Search-rendering changes: upload the corresponding `job.php`, `404.php`, `sitemap.php`, `robots.txt`, `llms.txt`, and root `.htaccess` files from `deploy/`. The sitemap uses the existing API configuration and database; it does not have separate credentials.
+Search-rendering changes: upload the corresponding `home.php`, `job.php`, `404.php`, `sitemap.php`, `robots.txt`, `llms.txt`, and root `.htaccess` files from `deploy/`. The renderers and sitemap use the existing API configuration and database; they do not have separate credentials.
 
 Your data lives in MySQL, so replacing files never touches the jobs.
 

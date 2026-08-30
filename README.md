@@ -16,6 +16,7 @@ Wogopogo is a free, account-free community job board for British Columbia's Okan
 - A moderation queue with approve, reject, feature, renew, close, and delete actions
 - Per-IP rate limits and a honeypot submission field
 - Dark and light appearances with restrained colour accents
+- A tint-aware, lazy-loaded Lake Dash microgame with local-only scores
 - Keyboard-accessible controls, visible focus states, and responsive layouts
 - Server-rendered public job pages with canonical metadata and JobPosting JSON-LD
 - A database-driven XML sitemap and deliberate crawler directives
@@ -36,7 +37,7 @@ flowchart LR
   J --> R
 ```
 
-The React application is built into static assets. The PHP API handles listings, moderation, validation, rate limiting, and database access. Public `/job/{id}` requests pass through a small PHP renderer so crawlers receive meaningful HTML and structured data before React hydrates the interface.
+The React application is built into static assets. The PHP API handles listings, moderation, validation, rate limiting, and database access. Public `/jobs/{id}/{job-title}` requests pass through a small PHP renderer so crawlers receive meaningful HTML and structured data before React hydrates the interface. The homepage is also rendered from the live database so every current job has a crawlable internal link before JavaScript runs.
 
 This split is deliberate: Bluehost-style shared hosting supports PHP and MySQL reliably but does not provide a persistent Node.js application server.
 
@@ -135,7 +136,7 @@ The `deploy/` directory is maintained for transparent, inspectable releases. Pro
 
 Approved, unexpired listings are exposed through:
 
-- Canonical, server-rendered `/job/{id}` pages
+- Canonical, descriptive, server-rendered `/jobs/{id}/{job-title}` pages
 - Valid JobPosting JSON-LD
 - A dynamic `/sitemap.xml`
 - Crawl directives in `robots.txt`
@@ -158,7 +159,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md), the [Code of Conduct](CODE_OF_CONDUCT.m
 
 ## Project status
 
-Version 1.2 is deployed and operational. The public repository is the community development home; deployments remain a separate maintainer-controlled process. Merging a contribution does not automatically publish it to the live service.
+Version 1.3 is deployed and operational. The public repository is the community development home; deployments remain a separate maintainer-controlled process. Merging a contribution does not automatically publish it to the live service.
 
 ## Licence
 

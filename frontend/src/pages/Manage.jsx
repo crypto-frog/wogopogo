@@ -98,7 +98,7 @@ export default function Manage() {
           {jobId ? (
             <Link
               className="btn btn-ghost"
-              to={`/job/${jobId}${token ? `?token=${encodeURIComponent(token.trim())}` : ''}`}
+              to={`/jobs/${jobId}/listing${token ? `?token=${encodeURIComponent(token.trim())}` : ''}`}
             >
               View listing
             </Link>

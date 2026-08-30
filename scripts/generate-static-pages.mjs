@@ -15,7 +15,10 @@ const shell = fs.readFileSync(indexPath, 'utf8')
 function replaceRoot(document, fallback) {
   const marker = '<div id="root"></div>'
   if (!document.includes(marker)) throw new Error('Built HTML is missing the React root marker')
-  return document.replace(marker, `<div id="root">${fallback}</div>`)
+  return document.replace(
+    marker,
+    `<div id="root"><!--wogo-fallback-start-->${fallback}<!--wogo-fallback-end--></div>`
+  )
 }
 
 function replaceTag(document, pattern, replacement, label) {

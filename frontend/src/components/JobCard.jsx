@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom'
-import { timeAgo } from '../util.js'
+import { jobPath, timeAgo } from '../util.js'
 
 export default function JobCard({ job }) {
   const featured = job.tier === 'featured'
   return (
-    <Link to={`/job/${job.id}`} className={'card' + (featured ? ' card-featured' : '')}>
+    <Link to={jobPath(job)} className={'card' + (featured ? ' card-featured' : '')}>
       <div className="card-top">
         <span className="card-cat">
           <span aria-hidden="true">{job.category.emoji}</span> {job.category.name}

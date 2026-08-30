@@ -66,7 +66,7 @@ function wogo_schema_is_current(PDO $pdo): bool
     try {
         $stmt = $pdo->prepare("SELECT meta_value FROM app_meta WHERE meta_key = 'schema_version'");
         $stmt->execute();
-        return (int) $stmt->fetchColumn() === 1;
+        return (int) $stmt->fetchColumn() === 2;
     } catch (PDOException $e) {
         return false;
     }
@@ -102,8 +102,14 @@ function wogo_init_schema(PDO $pdo, array $cfg): void
         tier        VARCHAR(20)  NOT NULL DEFAULT 'free',
         manage_hash CHAR(64)     NOT NULL,
         created_at  VARCHAR(19)  NOT NULL,
+        updated_at  VARCHAR(19)  NOT NULL,
         expires_at  VARCHAR(19)  NOT NULL
     )$suffix");
+
+    if (!wogo_column_exists($pdo, 'jobs', 'updated_at')) {
+        $pdo->exec("ALTER TABLE jobs ADD COLUMN updated_at VARCHAR(19) NOT NULL DEFAULT ''");
+    }
+    $pdo->exec("UPDATE jobs SET updated_at = created_at WHERE updated_at = '' OR updated_at IS NULL");
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS rate_limits (
         id         $idCol,
@@ -146,7 +152,26 @@ function wogo_init_schema(PDO $pdo, array $cfg): void
     }
 
     $pdo->prepare('REPLACE INTO app_meta (meta_key, meta_value) VALUES (?, ?)')
-        ->execute(['schema_version', '1']);
+        ->execute(['schema_version', '2']);
+}
+
+function wogo_column_exists(PDO $pdo, string $table, string $column): bool
+{
+    if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) FROM information_schema.columns
+              WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?'
+        );
+        $stmt->execute([$table, $column]);
+        return (int) $stmt->fetchColumn() > 0;
+    }
+
+    foreach ($pdo->query('PRAGMA table_info(' . $table . ')') as $row) {
+        if ((string) $row['name'] === $column) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function wogo_seed_categories(PDO $pdo): void
@@ -233,8 +258,8 @@ function wogo_seed_demo(PDO $pdo, array $cfg): void
 
     $stmt = $pdo->prepare(
         'INSERT INTO jobs (title, company, category_id, location, job_type, pay, description,
-                           apply_email, apply_url, status, tier, manage_hash, created_at, expires_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                           apply_email, apply_url, status, tier, manage_hash, created_at, updated_at, expires_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
     foreach ($demo as $d) {
         [$title, $company, $slug, $loc, $type, $pay, $desc, $email, $url, $tier, $hoursAgo] = $d;
@@ -243,7 +268,7 @@ function wogo_seed_demo(PDO $pdo, array $cfg): void
         $stmt->execute([
             $title, $company, $slugId[$slug] ?? 1, $loc, $type, $pay, $desc,
             $email, $url, 'approved', $tier,
-            hash('sha256', bin2hex(random_bytes(16))), $created, $expires,
+            hash('sha256', bin2hex(random_bytes(16))), $created, $created, $expires,
         ]);
     }
 }

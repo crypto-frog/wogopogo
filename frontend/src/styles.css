@@ -1525,25 +1525,10 @@ button {
 
   .nav > .btn-primary {
     padding-inline: 12px;
+    min-height: 40px;
+    white-space: nowrap;
   }
 
-  .brand-word {
-    font-size: 18px;
-  }
-
-  .theme-toggle,
-  .tint-trigger {
-    height: 40px;
-  }
-
-  .search-clear,
-  .tint-close {
-    width: 40px;
-    height: 40px;
-  }
-}
-
-@media (max-width: 360px) {
   .brand-word {
     position: absolute;
     width: 1px;
@@ -1551,6 +1536,21 @@ button {
     overflow: hidden;
     clip: rect(0 0 0 0);
     white-space: nowrap;
+  }
+
+  .theme-toggle,
+  .tint-trigger {
+    height: 40px;
+  }
+
+  .theme-toggle {
+    width: 40px;
+  }
+
+  .search-clear,
+  .tint-close {
+    width: 40px;
+    height: 40px;
   }
 }
 

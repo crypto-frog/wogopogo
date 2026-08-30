@@ -10,6 +10,21 @@ if ($path === '/sitemap.xml') {
     require $root . '/sitemap.php';
     return;
 }
+if ($path === '/') {
+    require $root . '/home.php';
+    return;
+}
+if (preg_match('#^/jobs/([0-9]+)/([a-z0-9-]+)/?$#', $path, $match)) {
+    $_GET['id'] = $match[1];
+    $_GET['slug'] = $match[2];
+    require $root . '/job.php';
+    return;
+}
+if (preg_match('#^/jobs/([0-9]+)/?$#', $path, $match)) {
+    $_GET['id'] = $match[1];
+    require $root . '/job.php';
+    return;
+}
 if (preg_match('#^/job/([0-9]+)/?$#', $path, $match)) {
     $_GET['id'] = $match[1];
     require $root . '/job.php';
@@ -19,5 +34,4 @@ $file = realpath($root . $path);
 if ($file && is_file($file) && strpos($file, $root) === 0) {
     return false; // let the built-in server serve the static file
 }
-header('Content-Type: text/html; charset=utf-8');
-readfile($root . '/index.html');
+require $root . '/404.php';

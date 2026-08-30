@@ -1,6 +1,6 @@
 <?php
 /**
- * Server-rendered shell for /job/{id}.
+ * Server-rendered shell for /jobs/{id}/{job-title}.
  * Search crawlers receive the job's text, canonical metadata, and JobPosting
  * JSON-LD immediately; React replaces the fallback for normal visitors.
  */
@@ -89,7 +89,17 @@ function wogo_render_index(
     }
 
     $index = str_replace('</head>', $meta . "\n  </head>", $index);
-    if ($fallback !== '') {
+    $fallbackPattern = '#<!--wogo-fallback-start-->.*?<!--wogo-fallback-end-->#s';
+    if (preg_match($fallbackPattern, $index)) {
+        $index = (string) preg_replace_callback(
+            $fallbackPattern,
+            static function () use ($fallback): string {
+                return '<!--wogo-fallback-start-->' . $fallback . '<!--wogo-fallback-end-->';
+            },
+            $index,
+            1
+        );
+    } elseif ($fallback !== '') {
         $index = str_replace('<div id="root"></div>', '<div id="root">' . $fallback . '</div>', $index);
     }
     return $index;
@@ -105,10 +115,12 @@ if ($index === false) {
 
 $rawId = (string) ($_GET['id'] ?? '');
 $jobId = ctype_digit($rawId) ? (int) $rawId : 0;
-$canonical = 'https://wogopogo.ca/job/' . $jobId;
+$requestedSlug = trim((string) ($_GET['slug'] ?? ''));
+$canonical = 'https://wogopogo.ca/jobs/' . $jobId . '/job';
 
 try {
     require __DIR__ . '/api/db.php';
+    require __DIR__ . '/api/helpers.php';
     $cfg = require __DIR__ . '/api/config.php';
     $pdo = wogo_db($cfg);
     $stmt = $pdo->prepare(
@@ -137,6 +149,20 @@ $isOwner = $job && $token !== ''
 $isLive = $job && $job['status'] === 'approved'
     && (string) $job['expires_at'] > gmdate('Y-m-d H:i:s');
 
+if ($job) {
+    $canonicalPath = wogo_job_path((int) $job['id'], (string) $job['title']);
+    $canonical = 'https://wogopogo.ca' . $canonicalPath;
+    $canonicalSlug = wogo_slugify((string) $job['title']);
+    if (($isLive || $isOwner) && $requestedSlug !== $canonicalSlug) {
+        $location = $canonicalPath;
+        if ($isOwner) {
+            $location .= '?token=' . rawurlencode($token);
+        }
+        header('Location: ' . $location, true, $isLive ? 301 : 302);
+        exit;
+    }
+}
+
 if (!$isLive) {
     if ($isOwner) {
         header('Cache-Control: private, no-store');
@@ -150,8 +176,10 @@ if (!$isLive) {
         exit;
     }
 
-    http_response_code(404);
+    $isGone = $job && in_array((string) $job['status'], ['approved', 'closed'], true);
+    http_response_code($isGone ? 410 : 404);
     header('Cache-Control: public, max-age=60');
+    header('X-Robots-Tag: noindex, nofollow');
     $fallback = '<main class="shell page empty"><article>'
         . '<h1>Job listing not found</h1>'
         . '<p>This listing may have been filled, expired, or removed.</p>'
@@ -159,8 +187,10 @@ if (!$isLive) {
         . '</article></main>';
     echo wogo_render_index(
         $index,
-        'Job Listing Not Found | Wogopogo',
-        'This Wogopogo job listing is no longer available.',
+        $isGone ? 'Job Listing Closed | Wogopogo' : 'Job Listing Not Found | Wogopogo',
+        $isGone
+            ? 'This Wogopogo job listing has closed and is no longer accepting applications.'
+            : 'This Wogopogo job listing is no longer available.',
         $canonical,
         'noindex, nofollow',
         null,
@@ -184,7 +214,7 @@ $schema = [
     '@context' => 'https://schema.org',
     '@type' => 'JobPosting',
     'title' => $job['title'],
-    'description' => $job['description'],
+    'description' => nl2br(wogo_html((string) $job['description'])),
     'identifier' => [
         '@type' => 'PropertyValue',
         'name' => 'Wogopogo',
@@ -225,15 +255,25 @@ $description = wogo_meta_description(
     . (string) $job['location'] . '. ' . (string) $job['description']
 );
 $pay = trim((string) $job['pay']);
+$applyEmail = trim((string) $job['apply_email']);
+$applyUrl = trim((string) $job['apply_url']);
 $fallback = '<main class="shell page detail"><article>'
-    . '<p><a href="/">All Okanagan jobs</a></p>'
+    . '<nav aria-label="Breadcrumb"><p><a href="/">Okanagan jobs</a> · '
+    . wogo_html((string) $job['title']) . '</p></nav>'
     . '<h1>' . wogo_html((string) $job['title']) . '</h1>'
     . '<p><strong>' . wogo_html((string) $job['company']) . '</strong></p>'
     . '<p>' . wogo_html((string) $job['location']) . ' · '
     . wogo_html((string) $job['job_type'])
     . ($pay !== '' ? ' · ' . wogo_html($pay) : '') . '</p>'
     . '<div>' . nl2br(wogo_html((string) $job['description'])) . '</div>'
-    . '<p>Applications are handled directly by the employer.</p>'
+    . '<section><h2>Apply</h2>'
+    . ($applyUrl !== ''
+        ? '<p><a href="' . wogo_html($applyUrl) . '">Apply on the employer’s website</a></p>'
+        : '')
+    . ($applyEmail !== ''
+        ? '<p><a href="mailto:' . wogo_html($applyEmail) . '">Apply by email</a></p>'
+        : '')
+    . '<p>Applications are handled directly by the employer.</p></section>'
     . '</article></main>';
 
 echo wogo_render_index(

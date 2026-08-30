@@ -16,8 +16,12 @@ import { applySeo, removeStructuredData } from './seo.js'
 function ScrollToTop() {
   const { pathname } = useLocation()
   useEffect(() => {
+    if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual'
     window.scrollTo(0, 0)
-    window.requestAnimationFrame(() => document.getElementById('main-content')?.focus())
+    window.requestAnimationFrame(() => {
+      document.getElementById('main-content')?.focus({ preventScroll: true })
+      window.scrollTo(0, 0)
+    })
   }, [pathname])
   return null
 }
@@ -44,7 +48,7 @@ function RouteSeo() {
       return
     }
 
-    if (/^\/job\/\d+$/.test(pathname)) {
+    if (/^\/jobs\/\d+\/[a-z0-9-]+$/.test(pathname)) {
       applySeo({
         title: 'Okanagan Job Listing | Wogopogo',
         description: 'View this current Okanagan Valley job opportunity on Wogopogo.',
@@ -154,7 +158,7 @@ export default function App() {
         <main id="main-content" className="site-main" tabIndex={-1}>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/job/:id" element={<JobDetail />} />
+            <Route path="/jobs/:id/:slug" element={<JobDetail />} />
             <Route path="/post" element={<PostJob />} />
             <Route path="/manage" element={<Manage />} />
             <Route path="/admin" element={<Admin />} />
