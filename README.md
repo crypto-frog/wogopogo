@@ -127,15 +127,15 @@ GitHub Actions runs the same contract, build, PHP syntax, and public-configurati
 
 ## Configuration and deployment
 
-The committed `backend/api/config.php` and `deploy/api/config.php` files are safe development templates. They contain no production credentials, and the moderator API remains disabled until an administrator replaces `change-me` on the server.
+The committed `backend/api/config.php` and `deploy/api/config.php` files are safe development templates. They contain no production credentials, and the moderator API remains disabled until a private override replaces `change-me`. A server-only `api/config.local.php` may either update `$CONFIG` directly or return a partial configuration array; production uses the returned-array form.
 
 For a shared-hosting installation:
 
 1. Read [INSTALL-BLUEHOST.md](INSTALL-BLUEHOST.md).
 2. Create a MySQL database and a dedicated database user.
-3. Configure the server-only `api/config.php`.
+3. Create the server-only `api/config.local.php`; leave the committed template publishable.
 4. Upload the complete contents of `deploy/`, including both `.htaccess` files.
-5. Never replace an existing live `api/config.php` during an upgrade.
+5. Preserve `api/config.local.php` when creating a new release and never publish it.
 6. Verify `/api/health`, `/sitemap.xml`, the homepage, and a public job route.
 
 The `deploy/` directory is maintained for transparent, inspectable releases. Production credentials, database exports, logs, and local SQLite data must never be committed.

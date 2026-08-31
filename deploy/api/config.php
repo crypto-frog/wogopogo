@@ -57,10 +57,16 @@ $CONFIG = [
     'featured_enabled' => true,
 ];
 
-// Optional untracked overrides for local development.
+// Optional untracked overrides for local development and production. Support
+// both a file that mutates $CONFIG and a file that returns a partial array.
 if (file_exists(__DIR__ . '/config.local.php')) {
-    require __DIR__ . '/config.local.php';
+    $secretConfig = require __DIR__ . '/config.local.php';
+    if (is_array($secretConfig)) {
+        $CONFIG = array_replace_recursive($CONFIG, $secretConfig);
+    } elseif ($secretConfig !== 1) {
+        throw new RuntimeException('config.local.php must return an array or update $CONFIG directly.');
+    }
+    unset($secretConfig);
 }
 
 return $CONFIG;
-
