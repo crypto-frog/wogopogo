@@ -60,13 +60,29 @@ $CONFIG = [
 // Optional untracked overrides for local development and production. Support
 // both a file that mutates $CONFIG and a file that returns a partial array.
 if (file_exists(__DIR__ . '/config.local.php')) {
+    $driverBeforeLocal = $CONFIG['db_driver'];
     $secretConfig = require __DIR__ . '/config.local.php';
+    $localSetDriver = false;
     if (is_array($secretConfig)) {
+        $localSetDriver = array_key_exists('db_driver', $secretConfig);
         $CONFIG = array_replace_recursive($CONFIG, $secretConfig);
     } elseif ($secretConfig !== 1) {
         throw new RuntimeException('config.local.php must return an array or update $CONFIG directly.');
+    } else {
+        $localSetDriver = $CONFIG['db_driver'] !== $driverBeforeLocal;
     }
-    unset($secretConfig);
+
+    // Backward compatibility for existing Bluehost overrides that predate the
+    // explicit driver setting. Never switch unless every credential placeholder
+    // was replaced, and never override an explicit local driver choice.
+    $mysql = is_array($CONFIG['mysql'] ?? null) ? $CONFIG['mysql'] : [];
+    $mysqlCredentialsSet = ($mysql['name'] ?? 'your_cpanel_database') !== 'your_cpanel_database'
+        && ($mysql['user'] ?? 'your_cpanel_user') !== 'your_cpanel_user'
+        && ($mysql['pass'] ?? 'replace-with-a-strong-password') !== 'replace-with-a-strong-password';
+    if (!$localSetDriver && $CONFIG['db_driver'] === $driverBeforeLocal && $mysqlCredentialsSet) {
+        $CONFIG['db_driver'] = 'mysql';
+    }
+    unset($driverBeforeLocal, $localSetDriver, $mysql, $mysqlCredentialsSet, $secretConfig);
 }
 
 return $CONFIG;

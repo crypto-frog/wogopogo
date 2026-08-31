@@ -21,7 +21,7 @@ Notable project changes are recorded here. The format is inspired by Keep a Chan
 - Made original posting dates available to public JobPosting metadata
 - Added visible source and last-verified information to externally sourced job pages
 - Expanded CI and packaging checks to cover the private operations surface
-- Made private configuration overrides compatible with both returned arrays and direct `$CONFIG` updates
+- Made private configuration overrides compatible with returned arrays, direct `$CONFIG` updates, and the existing Bluehost credential-only override
 
 ## [1.3.0] - 2026-08-30
 

@@ -127,7 +127,7 @@ GitHub Actions runs the same contract, build, PHP syntax, and public-configurati
 
 ## Configuration and deployment
 
-The committed `backend/api/config.php` and `deploy/api/config.php` files are safe development templates. They contain no production credentials, and the moderator API remains disabled until a private override replaces `change-me`. A server-only `api/config.local.php` may either update `$CONFIG` directly or return a partial configuration array; production uses the returned-array form.
+The committed `backend/api/config.php` and `deploy/api/config.php` files are safe development templates. They contain no production credentials, and the moderator API remains disabled until a private override replaces `change-me`. A server-only `api/config.local.php` may either update `$CONFIG` directly or return a partial configuration array. Set `db_driver` explicitly in new overrides. For compatibility with older Bluehost overrides, the template selects MySQL only when all MySQL credential placeholders have been replaced and the private file did not explicitly choose a driver.
 
 For a shared-hosting installation:
 
