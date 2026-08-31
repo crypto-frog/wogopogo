@@ -26,7 +26,27 @@ CREATE TABLE IF NOT EXISTS jobs (
     manage_hash CHAR(64)     NOT NULL,                    -- sha256 of the poster's manage token
     created_at  VARCHAR(19)  NOT NULL,                    -- UTC 'Y-m-d H:i:s'
     updated_at  VARCHAR(19)  NOT NULL,
-    expires_at  VARCHAR(19)  NOT NULL
+    expires_at  VARCHAR(19)  NOT NULL,
+    source_key  VARCHAR(190) NULL DEFAULT NULL,
+    source_name VARCHAR(120) NOT NULL DEFAULT '',
+    source_url  VARCHAR(500) NOT NULL DEFAULT '',
+    source_posted_at VARCHAR(10) NOT NULL DEFAULT '',
+    source_verified_at VARCHAR(19) NOT NULL DEFAULT '',
+    source_status VARCHAR(20) NOT NULL DEFAULT 'unverified',
+    managed_origin VARCHAR(30) NOT NULL DEFAULT 'public'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS ops_audit (
+    id          INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    actor       VARCHAR(120) NOT NULL,
+    action      VARCHAR(80)  NOT NULL,
+    entity_type VARCHAR(40)  NOT NULL,
+    entity_id   INT          NULL,
+    source_key  VARCHAR(190) NOT NULL DEFAULT '',
+    reason      VARCHAR(500) NOT NULL,
+    before_json TEXT         NOT NULL,
+    after_json  TEXT         NOT NULL,
+    created_at  VARCHAR(19)  NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS rate_limits (
@@ -42,7 +62,9 @@ CREATE TABLE IF NOT EXISTS app_meta (
 
 CREATE INDEX idx_jobs_status  ON jobs (status, expires_at);
 CREATE INDEX idx_jobs_created ON jobs (created_at);
+CREATE UNIQUE INDEX uq_jobs_source ON jobs (source_key);
 CREATE INDEX idx_rate_ip      ON rate_limits (ip, created_at);
 CREATE INDEX idx_rate_created ON rate_limits (created_at);
+CREATE INDEX idx_ops_created  ON ops_audit (created_at);
 
-REPLACE INTO app_meta (meta_key, meta_value) VALUES ('schema_version', '2');
+REPLACE INTO app_meta (meta_key, meta_value) VALUES ('schema_version', '3');

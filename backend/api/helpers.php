@@ -130,6 +130,49 @@ function wogo_rate_record(PDO $pdo): void
         ->execute([wogo_client_ip(), wogo_now()]);
 }
 
+/** Append-only operational audit trail. Never pass credentials or manage tokens. */
+function wogo_audit(
+    PDO $pdo,
+    string $actor,
+    string $action,
+    string $entityType,
+    ?int $entityId,
+    string $sourceKey,
+    string $reason,
+    array $before = [],
+    array $after = []
+): void {
+    $encode = static function (array $value): string {
+        $json = json_encode(
+            $value,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE
+        );
+        return $json === false ? '{}' : $json;
+    };
+    $pdo->prepare(
+        'INSERT INTO ops_audit
+         (actor, action, entity_type, entity_id, source_key, reason, before_json, after_json, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    )->execute([
+        mb_substr($actor, 0, 120),
+        mb_substr($action, 0, 80),
+        mb_substr($entityType, 0, 40),
+        $entityId,
+        mb_substr($sourceKey, 0, 190),
+        mb_substr($reason, 0, 500),
+        $encode($before),
+        $encode($after),
+        wogo_now(),
+    ]);
+}
+
+/** Remove private management material before recording rows in the audit log. */
+function wogo_audit_job(array $row): array
+{
+    unset($row['manage_hash']);
+    return $row;
+}
+
 /**
  * Admin auth. The key is accepted only through X-Admin-Key, keeping it
  * out of URLs, browser history, access logs, and request bodies.
@@ -191,6 +234,15 @@ function wogo_job_public(array $row, bool $withDescription = true): array
         $out['excerpt'] = mb_strlen($excerpt) > 200
             ? mb_substr($excerpt, 0, 200) . '…'
             : $excerpt;
+    }
+    if (trim((string) ($row['source_url'] ?? '')) !== '') {
+        $out['source'] = [
+            'name'        => (string) ($row['source_name'] ?? ''),
+            'url'         => (string) $row['source_url'],
+            'posted_at'   => (string) ($row['source_posted_at'] ?? ''),
+            'verified_at' => (string) ($row['source_verified_at'] ?? ''),
+            'status'      => (string) ($row['source_status'] ?? 'unverified'),
+        ];
     }
     return $out;
 }

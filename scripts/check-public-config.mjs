@@ -66,6 +66,27 @@ const requiredDeployFiles = [
 
 for (const file of requiredDeployFiles) read(file)
 
+const requiredOperationsFiles = [
+  'AGENTS.md',
+  'AI-OPERATIONS.md',
+  'ops/wogopogo.php',
+  'ops/job-import.schema.json',
+]
+
+for (const file of requiredOperationsFiles) read(file)
+
+try {
+  const manifestSchema = JSON.parse(read('ops/job-import.schema.json'))
+  if (manifestSchema?.properties?.manifest_version?.const !== 1) {
+    failures.push('ops/job-import.schema.json must declare manifest_version 1')
+  }
+  if (!Array.isArray(manifestSchema?.required) || !manifestSchema.required.includes('jobs')) {
+    failures.push('ops/job-import.schema.json must require jobs')
+  }
+} catch (error) {
+  failures.push(`ops/job-import.schema.json is not valid JSON: ${error.message}`)
+}
+
 const ignoredDirectories = new Set([
   '.git',
   'node_modules',
@@ -135,3 +156,4 @@ if (failures.length) {
 
 console.log('Public repository safety check passed.')
 console.log(`Verified ${configPaths.length} safe configuration templates and ${requiredDeployFiles.length} deployment files.`)
+console.log(`Verified ${requiredOperationsFiles.length} private-operations contract files.`)

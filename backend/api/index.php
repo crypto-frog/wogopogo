@@ -266,6 +266,19 @@ if ($route === 'jobs' && $method === 'POST') {
 
     $newId = (int) $pdo->lastInsertId();
     wogo_rate_record($pdo);
+    $createdJob = $pdo->prepare('SELECT * FROM jobs WHERE id = ?');
+    $createdJob->execute([$newId]);
+    wogo_audit(
+        $pdo,
+        'public-web',
+        'job.submit',
+        'job',
+        $newId,
+        '',
+        'Public job submission',
+        [],
+        wogo_audit_job($createdJob->fetch() ?: [])
+    );
     $pdo->commit();
 
     wogo_respond([
@@ -311,12 +324,40 @@ if (count($parts) >= 2 && $parts[0] === 'jobs' && ctype_digit($parts[1])) {
             wogo_error('That manage token does not match this listing.', 401);
         }
         if ($action === 'close') {
+            $pdo->beginTransaction();
             $pdo->prepare("UPDATE jobs SET status = 'closed', updated_at = ? WHERE id = ?")
                 ->execute([wogo_now(), $jobId]);
+            $afterStmt = $pdo->prepare('SELECT * FROM jobs WHERE id = ?');
+            $afterStmt->execute([$jobId]);
+            wogo_audit(
+                $pdo,
+                'poster-token',
+                'job.close',
+                'job',
+                $jobId,
+                (string) ($job['source_key'] ?? ''),
+                'Poster closed their listing',
+                wogo_audit_job($job),
+                wogo_audit_job($afterStmt->fetch() ?: [])
+            );
+            $pdo->commit();
             wogo_respond(['ok' => true, 'status' => 'closed']);
         }
         if ($action === 'delete') {
+            $pdo->beginTransaction();
             $pdo->prepare('DELETE FROM jobs WHERE id = ?')->execute([$jobId]);
+            wogo_audit(
+                $pdo,
+                'poster-token',
+                'job.delete',
+                'job',
+                $jobId,
+                (string) ($job['source_key'] ?? ''),
+                'Poster deleted their listing',
+                wogo_audit_job($job),
+                []
+            );
+            $pdo->commit();
             wogo_respond(['ok' => true, 'deleted' => true]);
         }
         wogo_error("Unknown action. Use 'close' or 'delete'.", 400);
@@ -356,12 +397,14 @@ if (count($parts) === 3 && $parts[0] === 'admin' && $parts[1] === 'jobs'
     $life   = (int) $cfg['job_lifetime_days'];
     $now    = wogo_now();
 
-    $exists = $pdo->prepare('SELECT id FROM jobs WHERE id = ?');
+    $exists = $pdo->prepare('SELECT * FROM jobs WHERE id = ?');
     $exists->execute([$jobId]);
-    if (!$exists->fetchColumn()) {
+    $before = $exists->fetch();
+    if (!$before) {
         wogo_error('Listing not found.', 404);
     }
 
+    $pdo->beginTransaction();
     switch ($action) {
         case 'approve':
             // Approval starts the clock so review time never eats the listing window
@@ -397,6 +440,20 @@ if (count($parts) === 3 && $parts[0] === 'admin' && $parts[1] === 'jobs'
         default:
             wogo_error('Unknown admin action.', 400);
     }
+    $afterStmt = $pdo->prepare('SELECT * FROM jobs WHERE id = ?');
+    $afterStmt->execute([$jobId]);
+    wogo_audit(
+        $pdo,
+        'web-admin',
+        'job.' . $action,
+        'job',
+        $jobId,
+        (string) ($before['source_key'] ?? ''),
+        'Admin panel action',
+        wogo_audit_job($before),
+        wogo_audit_job($afterStmt->fetch() ?: [])
+    );
+    $pdo->commit();
     wogo_respond(['ok' => true, 'action' => $action]);
 }
 

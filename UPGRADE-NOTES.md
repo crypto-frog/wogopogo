@@ -1,4 +1,12 @@
-# Wogopogo 1.3 upgrade notes
+# Wogopogo 1.4 upgrade notes
+
+Version 1.4 adds an SSH-first, JSON operations interface for safe human and AI-agent management. The database migrates automatically to schema version 3, adding source provenance to jobs and an append-only `ops_audit` table. Existing employer-submitted jobs remain valid; their provenance is marked `unverified` until an operator explicitly records a source check.
+
+Install `ops/wogopogo.php` outside `public_html` and point it at the active release. Mutations require `--apply`, an actor, and a reason; imports are dry runs by default and idempotent by `source_key`. See `AI-OPERATIONS.md` and the repository-wide `AGENTS.md` for import, audit, deployment, rollback, and future payment-workflow rules.
+
+The public job response and detail page now expose source attribution when it exists. CI builds and retains a tested Bluehost artifact, validates the operations contract, and continues to reject server-only configuration or private key material.
+
+## Previous 1.3 changes
 
 Version 1.3 adds the optional Lake Dash microgame and moves live job listings to descriptive, server-rendered URLs. The database migrates automatically to schema version 2 by adding `updated_at`, which powers accurate sitemap `lastmod` values. Existing `/job/{id}` links redirect to the new canonical route, and no production job data or server-only configuration needs to be replaced.
 

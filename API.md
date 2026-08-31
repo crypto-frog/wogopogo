@@ -43,6 +43,10 @@ Featured listings sort before free listings; each group sorts newest first.
 
 Returns one approved, unexpired listing. A valid management token may be supplied by the first-party interface to preview a poster-owned pending listing.
 
+Externally sourced jobs include a `source` object with the public source name,
+URL, original posting date, last verification time, and verification status.
+Employer-submitted jobs omit this object.
+
 ### `POST /api/jobs`
 
 Submits a listing. The API validates required fields, lengths, configured values, application contact details, request rate, and the honeypot field.
@@ -84,3 +88,9 @@ Do not put moderator keys in URLs, logs, issue reports, screenshots, or client-s
 
 The implementation in [backend/api/index.php](backend/api/index.php) is authoritative. Report discrepancies or vulnerabilities privately according to [SECURITY.md](SECURITY.md).
 
+## Private operations interface
+
+The HTTP API is not the batch-administration interface. Trusted maintainers and
+AI agents use `ops/wogopogo.php` over SSH. It defaults to dry-run imports,
+requires explicit attribution for mutations, uses source keys for idempotency,
+and writes an append-only audit trail. See [AI-OPERATIONS.md](AI-OPERATIONS.md).

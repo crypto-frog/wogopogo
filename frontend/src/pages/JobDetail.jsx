@@ -31,7 +31,9 @@ function jobPostingSchema(job) {
       name: 'Wogopogo',
       value: String(job.id),
     },
-    datePosted: isoDate(job.created_at),
+    datePosted: job.source?.posted_at
+      ? isoDate(`${job.source.posted_at} 00:00:00`)
+      : isoDate(job.created_at),
     validThrough: isoDate(job.expires_at),
     employmentType: EMPLOYMENT_TYPES[job.job_type] || job.job_type,
     hiringOrganization: {
@@ -198,7 +200,10 @@ export default function JobDetail() {
             <span className="dot">·</span> {job.pay}
           </>
         )}
-        <span className="dot">·</span> posted {timeAgo(job.created_at)}
+        <span className="dot">·</span>{' '}
+        {job.source?.posted_at
+          ? `originally posted ${shortDate(`${job.source.posted_at} 00:00:00`)}`
+          : `posted ${timeAgo(job.created_at)}`}
         <span className="dot">·</span> open until {shortDate(job.expires_at)}
       </p>
 
@@ -227,6 +232,17 @@ export default function JobDetail() {
               {copied ? 'Link copied' : 'Copy link'}
             </button>
           </div>
+          {job.source?.url && (
+            <p className="apply-note muted">
+              Source:{' '}
+              <a href={job.source.url} target="_blank" rel="noopener noreferrer">
+                {job.source.name || 'original public listing'} ↗
+              </a>
+              {job.source.verified_at
+                ? ` · last verified ${shortDate(job.source.verified_at)}`
+                : ''}
+            </p>
+          )}
           <p className="apply-note muted">
             {isLive
               ? 'Wogopogo never handles applications. You deal directly with the employer.'

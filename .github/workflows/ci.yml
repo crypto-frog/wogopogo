@@ -37,8 +37,17 @@ jobs:
       - name: Run contract tests
         run: npm test
 
-      - name: Build production frontend
-        run: npm run build
+      - name: Build Bluehost release package
+        run: npm run package:bluehost
+
+      - name: Upload tested Bluehost release package
+        uses: actions/upload-artifact@v4
+        with:
+          name: wogopogo-bluehost-${{ github.sha }}
+          path: deploy
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
@@ -56,8 +65,8 @@ jobs:
           php-version: '8.2'
           coverage: none
 
-      - name: Lint PHP source and deployment files
-        run: find backend deploy -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Lint PHP source, operations, and deployment files
+        run: find backend deploy ops -type f -name '*.php' -print0 | xargs -0 -n1 php -l
 
   publication-safety:
     name: Public repository safety

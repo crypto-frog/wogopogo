@@ -14,6 +14,8 @@ Wogopogo is a free, account-free community job board for British Columbia's Okan
 - Search, category, location, and employment-type filtering
 - Account-free job submission with one-time management tokens
 - A moderation queue with approve, reject, feature, renew, close, and delete actions
+- A private JSON operations CLI for audited, idempotent management over SSH
+- Source provenance and verification state for carefully aggregated public listings
 - Per-IP rate limits and a honeypot submission field
 - Dark and light appearances with restrained colour accents
 - A tint-aware, lazy-loaded Lake Dash microgame with local-only scores
@@ -43,6 +45,11 @@ This split is deliberate: Bluehost-style shared hosting supports PHP and MySQL r
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for request flows and system boundaries, and [API.md](API.md) for the HTTP interface.
 
+Production operators and AI agents should also read [AGENTS.md](AGENTS.md) and
+[AI-OPERATIONS.md](AI-OPERATIONS.md). The operations CLI is installed outside
+the public document root, loads server-only credentials in place, emits JSON,
+defaults imports to a dry run, and records every mutation in an append-only audit trail.
+
 ## Repository map
 
 ```text
@@ -56,6 +63,7 @@ wogopogo/
 │   ├── dev-server.php       local PHP router
 │   └── schema.sql           reference MySQL schema
 ├── deploy/                  complete shared-hosting deployment package
+├── ops/                     private SSH/AI operations CLI and import contract
 ├── docs/                    GitHub Pages project website
 ├── scripts/                 repository safety checks
 └── .github/                 CI, Pages, issue, PR, and dependency automation
@@ -159,7 +167,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md), the [Code of Conduct](CODE_OF_CONDUCT.m
 
 ## Project status
 
-Version 1.3 is deployed and operational. The public repository is the community development home; deployments remain a separate maintainer-controlled process. Merging a contribution does not automatically publish it to the live service.
+Version 1.4 adds the agent-safe operations surface and source provenance model. The public repository is the community development home; deployments remain a separate maintainer-controlled process. Merging a contribution does not automatically publish it to the live service.
 
 ## Licence
 

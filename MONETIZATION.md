@@ -11,9 +11,20 @@ How to feature a job today:
 1. Open `/admin` and unlock with your admin key.
 2. Find the job in the Live tab and click "Feature". Click "Unfeature" to undo.
 
+Over SSH or through an AI operator, use the private operations CLI. Its
+`feature` action requires a commercial mode and reference, keeping complimentary
+promotions, manually reconciled payments, and provider-confirmed entitlements
+distinct in the audit trail. `provider-verified` must never be used without a
+signed webhook or direct authenticated confirmation from the payment provider.
+
 This means you can sell featured placement right now with nothing but an e-transfer and a minute in the admin panel. A reasonable early offer: 20 to 40 dollars to pin a listing for its 30-day lifetime.
 
 The future automated version: add a Stripe Checkout link on the post-success page ("Make this listing featured for $X"), and a tiny PHP webhook that flips the job's tier to `featured` when payment succeeds. The data model and the display layer are already done, so that upgrade touches only the payment step.
+
+That webhook must verify Stripe's signature, process event IDs idempotently,
+store only non-secret reconciliation references, and write the same operational
+audit shape used by the CLI. AI agents may reconcile confirmed events and report
+exceptions; they must not originate or override payment truth.
 
 Config switch: `featured_enabled` in `backend/api/config.php` hides all featured styling if you ever want it off.
 
@@ -52,6 +63,7 @@ The footer deliberately shows no advertising contact until you configure a real 
 | Feature/unfeature buttons | `frontend/src/pages/Admin.jsx` |
 | Featured badge and gold styling | `frontend/src/components/JobCard.jsx`, `frontend/src/styles.css` |
 | `featured_enabled` switch | `backend/api/config.php` |
+| SSH/AI feature guard and audit | `ops/wogopogo.php`, `AI-OPERATIONS.md` |
 | Ad master switch | `frontend/index.html` |
 | Ad slot component and placements | `frontend/src/components/AdSlot.jsx`, used in `Home.jsx` and `JobDetail.jsx` |
 | Advertise contact link | `frontend/src/components/Footer.jsx` |

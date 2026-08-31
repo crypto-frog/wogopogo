@@ -220,7 +220,9 @@ $schema = [
         'name' => 'Wogopogo',
         'value' => (string) $job['id'],
     ],
-    'datePosted' => wogo_iso_date((string) $job['created_at']),
+    'datePosted' => trim((string) ($job['source_posted_at'] ?? '')) !== ''
+        ? (string) $job['source_posted_at']
+        : wogo_iso_date((string) $job['created_at']),
     'validThrough' => wogo_iso_date((string) $job['expires_at']),
     'employmentType' => $employmentTypes[$job['job_type']] ?? $job['job_type'],
     'industry' => $job['cat_name'],
@@ -257,6 +259,9 @@ $description = wogo_meta_description(
 $pay = trim((string) $job['pay']);
 $applyEmail = trim((string) $job['apply_email']);
 $applyUrl = trim((string) $job['apply_url']);
+$sourceName = trim((string) ($job['source_name'] ?? ''));
+$sourceUrl = trim((string) ($job['source_url'] ?? ''));
+$sourceVerified = trim((string) ($job['source_verified_at'] ?? ''));
 $fallback = '<main class="shell page detail"><article>'
     . '<nav aria-label="Breadcrumb"><p><a href="/">Okanagan jobs</a> · '
     . wogo_html((string) $job['title']) . '</p></nav>'
@@ -272,6 +277,13 @@ $fallback = '<main class="shell page detail"><article>'
         : '')
     . ($applyEmail !== ''
         ? '<p><a href="mailto:' . wogo_html($applyEmail) . '">Apply by email</a></p>'
+        : '')
+    . ($sourceUrl !== ''
+        ? '<p>Source: <a href="' . wogo_html($sourceUrl) . '">'
+            . wogo_html($sourceName !== '' ? $sourceName : 'original public listing')
+            . '</a>'
+            . ($sourceVerified !== '' ? ' · last verified ' . wogo_html(substr($sourceVerified, 0, 10)) : '')
+            . '</p>'
         : '')
     . '<p>Applications are handled directly by the employer.</p></section>'
     . '</article></main>';

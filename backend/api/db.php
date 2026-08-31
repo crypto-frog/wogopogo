@@ -66,7 +66,7 @@ function wogo_schema_is_current(PDO $pdo): bool
     try {
         $stmt = $pdo->prepare("SELECT meta_value FROM app_meta WHERE meta_key = 'schema_version'");
         $stmt->execute();
-        return (int) $stmt->fetchColumn() === 2;
+        return (int) $stmt->fetchColumn() === 3;
     } catch (PDOException $e) {
         return false;
     }
@@ -111,6 +111,24 @@ function wogo_init_schema(PDO $pdo, array $cfg): void
     }
     $pdo->exec("UPDATE jobs SET updated_at = created_at WHERE updated_at = '' OR updated_at IS NULL");
 
+    // Provenance is optional for employer-submitted jobs and required by the
+    // private operations CLI for externally sourced listings. source_key is
+    // nullable so a unique index can coexist with any number of public posts.
+    $jobColumns = [
+        'source_key' => "VARCHAR(190) NULL DEFAULT NULL",
+        'source_name' => "VARCHAR(120) NOT NULL DEFAULT ''",
+        'source_url' => "VARCHAR(500) NOT NULL DEFAULT ''",
+        'source_posted_at' => "VARCHAR(10) NOT NULL DEFAULT ''",
+        'source_verified_at' => "VARCHAR(19) NOT NULL DEFAULT ''",
+        'source_status' => "VARCHAR(20) NOT NULL DEFAULT 'unverified'",
+        'managed_origin' => "VARCHAR(30) NOT NULL DEFAULT 'public'",
+    ];
+    foreach ($jobColumns as $name => $definition) {
+        if (!wogo_column_exists($pdo, 'jobs', $name)) {
+            $pdo->exec("ALTER TABLE jobs ADD COLUMN $name $definition");
+        }
+    }
+
     $pdo->exec("CREATE TABLE IF NOT EXISTS rate_limits (
         id         $idCol,
         ip         VARCHAR(64) NOT NULL,
@@ -122,13 +140,28 @@ function wogo_init_schema(PDO $pdo, array $cfg): void
         meta_value VARCHAR(255) NOT NULL
     )$suffix");
 
+    $pdo->exec("CREATE TABLE IF NOT EXISTS ops_audit (
+        id          $idCol,
+        actor       VARCHAR(120) NOT NULL,
+        action      VARCHAR(80)  NOT NULL,
+        entity_type VARCHAR(40)  NOT NULL,
+        entity_id   INT          NULL,
+        source_key  VARCHAR(190) NOT NULL DEFAULT '',
+        reason      VARCHAR(500) NOT NULL,
+        before_json TEXT         NOT NULL,
+        after_json  TEXT         NOT NULL,
+        created_at  VARCHAR(19)  NOT NULL
+    )$suffix");
+
     // Helpful indexes. MySQL has no portable IF NOT EXISTS form for indexes,
     // so check information_schema explicitly and let genuine DDL errors surface.
     $indexes = [
         ['idx_jobs_status',  'jobs',        'CREATE INDEX idx_jobs_status  ON jobs (status, expires_at)'],
         ['idx_jobs_created', 'jobs',        'CREATE INDEX idx_jobs_created ON jobs (created_at)'],
+        ['uq_jobs_source',   'jobs',        'CREATE UNIQUE INDEX uq_jobs_source ON jobs (source_key)'],
         ['idx_rate_ip',      'rate_limits', 'CREATE INDEX idx_rate_ip      ON rate_limits (ip, created_at)'],
         ['idx_rate_created', 'rate_limits', 'CREATE INDEX idx_rate_created ON rate_limits (created_at)'],
+        ['idx_ops_created',  'ops_audit',    'CREATE INDEX idx_ops_created ON ops_audit (created_at)'],
     ];
     foreach ($indexes as [$name, $table, $sql]) {
         if ($isMysql) {
@@ -152,7 +185,7 @@ function wogo_init_schema(PDO $pdo, array $cfg): void
     }
 
     $pdo->prepare('REPLACE INTO app_meta (meta_key, meta_value) VALUES (?, ?)')
-        ->execute(['schema_version', '2']);
+        ->execute(['schema_version', '3']);
 }
 
 function wogo_column_exists(PDO $pdo, string $table, string $column): bool

@@ -11,6 +11,7 @@ Wogopogo is a two-layer web application designed for community-scale operation o
 - **PHP homepage renderer:** live crawlable links for approved, unexpired jobs
 - **PHP job renderer:** public HTML and structured data for `/jobs/{id}/{job-title}`
 - **Apache configuration:** canonical redirects, routing, security headers, and file protections
+- **Private operations CLI:** JSON commands for SSH-based imports, lifecycle management, verification, exports, and audit review
 
 The hosted service uses static frontend assets. Node.js is a build tool, not a production runtime.
 
@@ -38,6 +39,16 @@ The hosted service uses static frontend assets. Node.js is a build tool, not a p
 2. The API performs a constant-time comparison.
 3. Approved actions change listing state or presentation.
 4. Approval and renewal calculate an expiry date using the configured listing lifetime.
+5. Mutations append a credential-free before/after event to `ops_audit`.
+
+### Agent and SSH operations
+
+1. The private CLI resolves the active release and loads its server-only configuration without printing it.
+2. Read commands return structured JSON; mutations require an explicit apply flag, actor, and reason.
+3. External listings are validated against the configured categories, locations, and job types.
+4. `source_key` makes manifest imports idempotent, while provenance timestamps distinguish publication from source verification.
+5. Every mutation runs in a database transaction and appends an audit event.
+6. The CLI is deployed outside `public_html` and therefore has no HTTP route.
 
 ### Public job rendering
 
@@ -57,9 +68,10 @@ The hosted service uses static frontend assets. Node.js is a build tool, not a p
 ## Data model
 
 - `categories`: stable category names, slugs, and presentation emoji
-- `jobs`: listing content, status, tier, management-token hash, and timestamps
+- `jobs`: listing content, status, tier, management-token hash, timestamps, optional source provenance, and verification state
 - `rate_limits`: successful submission timestamps associated with a client IP
 - `app_meta`: lightweight schema-version state
+- `ops_audit`: append-only, credential-free operational mutation history
 
 See [backend/schema.sql](backend/schema.sql) for the reference MySQL schema. Runtime initialization in [backend/api/db.php](backend/api/db.php) is authoritative.
 
@@ -89,6 +101,7 @@ The repository safety script verifies that committed templates remain inert and 
 - Minimal third-party runtime dependencies
 - Crawlable public listings without crawler-specific content
 - Explicit separation between open-source development and production operations
+- Dry-run-first, idempotent, audited automation rather than direct ad-hoc SQL
 
 ## Deployment boundary
 

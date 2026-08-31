@@ -4,6 +4,24 @@ Notable project changes are recorded here. The format is inspired by Keep a Chan
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-08-31
+
+### Added
+
+- Private JSON operations CLI for SSH and AI-assisted administration
+- Dry-run-first, idempotent manifest imports keyed by authoritative source IDs
+- Public source attribution, source dates, verification state, and freshness audits
+- Append-only operational audit events for public, poster, web-admin, and CLI mutations
+- Repository-level AI operating rules and a production operations runbook
+- Commercial guardrails for complimentary, manually paid, and provider-verified featured listings
+
+### Changed
+
+- Advanced the runtime schema to version 3 with provenance and audit support
+- Made original posting dates available to public JobPosting metadata
+- Added visible source and last-verified information to externally sourced job pages
+- Expanded CI and packaging checks to cover the private operations surface
+
 ## [1.3.0] - 2026-08-30
 
 ### Added
