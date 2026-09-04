@@ -4,6 +4,11 @@ Notable project changes are recorded here. The format is inspired by Keep a Chan
 
 ## [Unreleased]
 
+### Documentation
+
+- Defined private origin invariants and separate maintenance lifecycles for agent-imported and organic job postings
+- Added repeatable source-audit, per-category import, organic moderation, verification, and reporting guidance for future AI operations
+
 ## [1.4.0] - 2026-08-31
 
 ### Added

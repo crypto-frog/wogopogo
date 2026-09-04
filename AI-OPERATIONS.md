@@ -31,6 +31,19 @@ The CLI is the control plane for production job data and its audit history. Publ
 
 DNS, domain registration, mail delivery, analytics and payment processing are external control planes. An agent should use an authenticated provider API or console when one is available, keep provider secrets out of prompts and logs, and obtain explicit authority for material external changes. A future provider connector does not replace Wogopogo's local audit; record the resulting non-secret event or reconciliation reference here as well.
 
+## Separate imported and organic jobs
+
+The database deliberately distinguishes the two operational lifecycles with private fields that are omitted from public API responses:
+
+| Origin | Private invariant | Created through | Ongoing management |
+| --- | --- | --- | --- |
+| Agent import | `managed_origin = agent-import` and a stable non-empty `source_key` | `job:import` | Recheck the authoritative source, record verification outcomes, and close when the source is confirmed closed. |
+| Organic submission | `managed_origin = public` and no `source_key` | Public employer submission form | Moderate the pending submission, then leave content ownership and poster management with the submitter. |
+
+Never infer this classification from visible copy or convert one origin into the other. Public source attribution may be shown on imported jobs, but `managed_origin` and `source_key` must remain available only to trusted operators through the CLI/database control plane.
+
+At the start of a maintenance run, export the private job list and partition it by these invariants. If a record violates them, inspect its audit history instead of guessing. Handle agent imports and pending organic submissions as separate workstreams and report their results separately.
+
 ## Safe batch import
 
 Keep manifests and exports outside both the Git repository and `public_html` unless the manifest is intentionally sanitized for use as a public example.
@@ -53,6 +66,8 @@ php "$WOGO_OPS" audit:jobs --app-root "$WOGO_ROOT" --fresh-days 1
 
 The first import is always a dry run. Existing `source_key` values are skipped. Add `--update-existing` only after inspecting the existing record and the manifest diff.
 
+If the owner asks for three new jobs per category, the manifest must contain three new source keys in every category; existing live jobs do not count toward those three. Confirm the dry-run action totals by category before applying. Every imported job must use a supported location and taxonomy value returned by `status`, and its source must have been opened and found to be accepting applications during the current session.
+
 ## Lifecycle commands
 
 ```sh
@@ -74,6 +89,23 @@ php "$WOGO_OPS" job:act --app-root "$WOGO_ROOT" --id 42 --action renew \
 An unreachable source is not proof that a job closed. Record `--outcome unreachable`, investigate through another authoritative route, and do not leave an unverified listing active indefinitely.
 
 Deletion requires `--confirm-delete 42`. Prefer `close` because it preserves the audit and content history.
+
+## Organic moderation queue
+
+Check pending public submissions independently of the imported-job audit:
+
+```sh
+php "$WOGO_OPS" job:list --app-root "$WOGO_ROOT" --status pending
+php "$WOGO_OPS" job:show --app-root "$WOGO_ROOT" --id 42
+
+php "$WOGO_OPS" job:act --app-root "$WOGO_ROOT" --id 42 --action approve \
+  --apply --actor "agent:moderation" \
+  --reason "Organic submission is complete, relevant, and appropriate"
+```
+
+Approve only when the submission describes a real open role, uses a supported Okanagan location, provides a plausible employer and application path, contains enough information for applicants, fits the selected taxonomy, is not a duplicate, and raises no scam, discriminatory, or policy concern. Do not add a `source_key`, external-source metadata, or agent-written replacement copy to an organic listing. Reject only when the reason is clear and auditable. If material facts or appropriateness are uncertain, leave it pending and ask the owner.
+
+After any decision, list the queue again and report the IDs and outcomes. A report must distinguish organic approvals/rejections from imported creates/updates/skips/closures.
 
 ## Featured and future paid workflows
 
@@ -109,3 +141,14 @@ Never edit a past release in place, never upload `config.local.php` from a works
 - At least weekly: open each original source and update with `job:verify`.
 - Immediately: close any listing whose source says the position is filled, cancelled, expired, or no longer accepting applications.
 - Before commercial reporting: export the audit events and reconcile any featured placement to its authorization or verified payment reference.
+
+## Recurring job-maintenance checklist
+
+1. Run `status` and `capabilities`, then create a private timestamped export outside both the repository and web root.
+2. Partition records by the private origin invariant and inspect the pending organic queue separately.
+3. Re-open every approved agent-import source. Record `active` only after a current-page check; record `closed` when the source says it is filled, expired, cancelled, or no longer accepting applications; treat access failures as `unreachable` and investigate further.
+4. Build and schema-check the new-import manifest, confirm the requested new count in every category, dry-run it, and review all create/update/skip actions.
+5. Apply with a stable actor and specific reason. Prefer closing stale imports over deleting them so provenance and audit history remain intact.
+6. Moderate organic submissions without changing their origin or rewriting them as imports. Leave uncertain cases pending for the owner.
+7. Run `audit:jobs`, inspect the private counts, verify the public API and sample job pages, and re-open newly published source URLs.
+8. Report backup creation, imported creates/updates/skips/closures, organic decisions, remaining pending IDs, category totals, and verification failures as separate figures.

@@ -64,6 +64,19 @@ Use `ops/wogopogo.php`; do not hand-write SQL for ordinary operations.
 
 All CLI mutations require `--apply`, `--actor`, and `--reason`. Deletion also requires `--confirm-delete ID`. Imported listings are idempotent by `source_key`.
 
+## Job origin and lifecycle boundaries
+
+Treat origin as a private control-plane invariant, not as a guess based on listing text:
+
+- An agent-imported listing has `managed_origin = agent-import` and a non-empty, stable `source_key`. It is created only through `job:import`, is maintained against its authoritative external source, and is closed when that source is confirmed closed.
+- An organic employer listing has `managed_origin = public` and no `source_key`. It enters through the public submission flow and is moderated on the merits of the submitted content. Never assign it an import key, fabricate external provenance, or convert its origin to make batch management easier.
+- `managed_origin` and `source_key` are private operational fields. Do not add them to public API responses, page markup, analytics, or visible badges. The public `source` object is attribution for an externally sourced listing, not the private origin classifier.
+- Never identify origin from the title, company, description, email, or public source label. Inspect the private CLI record. If the invariant is missing or contradictory, leave the record unchanged and investigate the audit history.
+
+Review the two queues separately on every maintenance run. For imports, re-open each authoritative source in the current session and record `active`, `closed`, or `unreachable` with `job:verify`; an unreachable page alone is not evidence that a role is filled. For organic submissions, inspect every pending record for a real role, supported Okanagan location, plausible employer and application path, sufficient job details, correct taxonomy, duplication, scams, discrimination, and policy concerns. Approve or reject only when the evidence is clear; otherwise leave the listing pending and ask the owner. Do not rewrite or source-tag an organic submission during moderation.
+
+When a request says to add a number of jobs per category, interpret that as that many new, independently source-verified `source_key` values in every category unless the owner explicitly says to top up to a total. Report imported creates, updates, skips and closures separately from organic approvals, rejections and unresolved submissions.
+
 ## Category and field rules
 
 - Use only categories, locations, and job types returned by `status` or `/api/meta`.
