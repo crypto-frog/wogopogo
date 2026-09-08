@@ -1,5 +1,9 @@
 # Wogopogo agent operating rules
 
+## Account-wide hosting context
+
+Authorized maintainers should also read the [owner’s private shared-hosting documentation](https://github.com/crypto-frog/agent-ops/blob/main/docs/shared-hosting/README.md) before account/domain work. It links the account inventory, completed forwarding cleanup, recovery records and other site policies. Access requires the owner's existing private-repository permissions; keep its account details, raw receipts and backups private. The website hosting account and automation VPS are separate environments. This reference does not change Wogopogo's release layout or authorize a deployment.
+
 These instructions apply to the entire repository. They are written for AI agents and human maintainers operating the public codebase and the production Bluehost deployment.
 
 ## Non-negotiable safety boundaries
