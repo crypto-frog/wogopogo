@@ -8,7 +8,7 @@ pending submissions, connect Zoho contact mail and email new submissions for rev
 - Baseline: 70 approved imported jobs, no organic submissions awaiting moderation.
 - 21 original Job Bank pages returned HTTP 410 and explicitly said the posting was
   no longer advertised. All 21 were closed through the audited private CLI.
-- 48 other original pages were accessible and current; verified deadlines are being
+- 48 other original pages were accessible and current; verified deadlines were
   recorded as UTC closing instants through schema 4.
 - One original Workopolis page (listing 15, AI Solutions Specialist) blocks access
   with HTTP 403. Matching recent listings exist elsewhere, but this is not sufficient
@@ -97,17 +97,78 @@ now for a 2027 start; these dates are explicit in their summaries.
 
 ## Code and validation
 
-Version 1.4.1 adds transactional owner notifications, a protected review link, source
+Version 1.4.3 is live. This maintenance release adds transactional owner notifications, a protected review link, source
 deadline caps, themed contact links and a mobile form overflow fix. The database
 migration is additive; mail bodies and management credentials stay outside GitHub.
 
 - 25 outbox/deadline checks and 31 real API/CLI integration checks pass.
-- Five frontend contract tests and the production build pass.
+- Five cron-environment checks, five frontend contract tests and the production build pass.
 - 30 Chromium/Firefox checks cover desktop/mobile contact, forms and review links.
 - PHP syntax, public-configuration safety and project-page validation pass.
 - Mail change 051 passed 55 checks and is installed with the frozen broker preserved.
 
-## Activation
+## Completed changes
 
-Prepared and tested. Production website activation, import and actual notification
-delivery verification are pending; update this section from their receipts.
+- Imported **42 new records**, three new source keys in each of the 14 categories:
+  42 creates, zero updates and zero skips. New listing IDs are 72–113.
+- All 42 original URLs were reopened after publication. Job Bank identities and
+  closing dates matched; JavaScript-dependent employer details were also checked.
+- Existing review: 21 closures, 48 active verifications, one unreachable original.
+  Date-only deadlines expire at the next midnight in America/Vancouver; explicitly
+  timed deadlines retain their actual closing instant. Four existing listings close
+  at September 16, 07:00 UTC, not earlier during the local September 15 evening.
+- Organic moderation: no genuine pending submissions; zero approvals, rejections or
+  suspicious submissions. The controlled mail test is separate from this count.
+- Contact link appears in the themed footer and server-rendered pages.
+- Zoho owner inbox received the complete automatic review notification for controlled
+  pending listing 114. The public form, transaction outbox, actual minute scheduler,
+  Bluehost transport and Zoho Inbox were exercised. The test was never published
+  and was closed through the audited CLI after delivery verification. Final pending
+  organic queue: zero; notification outbox: one accepted, none pending or uncertain.
+- Fifteen public checks passed on the final release: health, metadata, listings,
+  sitemap, home/post/admin, hydrated contact, job schema, exact asset hashes, privacy,
+  closed-listing HTTP 410 and truthful source-unreachable wording.
+
+## Deployment and recovery
+
+- Live application revision: `afe1f63bd0f47c3637cf1223f57d4404549b616c` (v1.4.3).
+- Active symlink: `~/public_html/wogopogo_current` →
+  `~/wogopogo_releases/wogopogo-20260916-v1.4.3-afe1f63`.
+- Final private archive SHA-256:
+  `1d43208ccf47bef8e1b41bde8d99674b0760a14807375e6bcc8e7c7bd5d62777`.
+- 33 archive files verified; exact host PHP passed 25 synthetic checks. Server-only
+  configuration was preserved except for enabling the requested notification route.
+- Prior v1.4.2 and original v1.4.0 release directories remain for rollback. Application
+  rollback is an atomic symlink switch; retain the corrected private CLI and runner
+  when using schema-4 releases. A pre-outbox rollback pauses the runner automatically.
+  Do not restore an old database snapshot over the new listings or live submissions.
+- Full pre-change database/export backups and deployment receipts are private under
+  `~/wogopogo_backups/review-20260916` and `~/wogopogo_ops/releases/`.
+- One minute cron entry was added; both pre-existing unrelated jobs were preserved.
+  cPanel adds its own jailshell declarations and blank lines. Compare job lines when
+  checking its normalized output. Latest worker receipts live outside the web root.
+
+## Mail verification and follow-up
+
+Read [MAIL.md](MAIL.md). Change 051 is installed, preserving the frozen broker, existing
+mail, limits and expiry. Zoho domain ownership, alias, Canadian MX and 2048-bit DKIM
+signing are verified. The combined Bluehost/Zoho SPF record and monitoring DMARC are
+published; Bluehost Remote routing is verified through authenticated cPanel.
+
+One review email, `[Wogopogo] Listing #114 awaiting review`, arrived in **Zoho Inbox**
+at September 16, 04:40 UTC. Its complete body and authenticated admin review URL were
+checked. No applicant replies or extra tests were sent. Never replay this test without
+checking its durable outbox and inbox history. Raw messages and receipts stay private.
+
+The first automated form attempt was rejected by host ModSecurity before creating a
+record: its headless-browser identification triggered the host filter. The same real
+form with normal browser identification succeeded. No firewall settings were changed.
+The first cron run selected CGI PHP from the minimal PATH; v1.4.3 explicitly selects
+and verifies PHP CLI and validates JSON success before replacing the success receipt.
+Regression tests cover both failures and rollback pausing.
+
+At completion, some public DNS edges still return older MX/SPF records; Zoho's SPF
+verification badge remains pending propagation. Actual Inbox delivery passed. Recheck
+SPF after DNS converges; do not add a second SPF record or replace unrelated mail
+settings. The only listing audit warning is original-source access blocking for job 15.
+

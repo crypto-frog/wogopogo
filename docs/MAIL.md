@@ -88,5 +88,5 @@ Synthetic tests: `php backend/tests/maintenance.php` and
 `python3 backend/tests/integration.py`. The latter uses a temporary database, local
 HTTP server and fake sendmail transport; it never sends real mail.
 
-See the dated maintenance record for actual live release, delivery evidence, counts
-and any remaining limitations. Source code alone is not evidence of activation.
+See the [September 16 maintenance record](MAINTENANCE-2026-09-16.md) for the live
+v1.4.3 release, verified Zoho Inbox delivery, counts and DNS-propagation follow-up. Source code alone is not evidence of activation.
