@@ -105,12 +105,14 @@ migration is additive; mail bodies and management credentials stay outside GitHu
 - Five cron-environment checks, five frontend contract tests and the production build pass.
 - 30 Chromium/Firefox checks cover desktop/mobile contact, forms and review links.
 - PHP syntax, public-configuration safety and project-page validation pass.
+- [GitHub Quality checks for the deployed revision](https://github.com/crypto-frog/wogopogo/actions/runs/35056426428) completed successfully.
 - Mail change 051 passed 55 checks and is installed with the frozen broker preserved.
 
 ## Completed changes
 
 - Imported **42 new records**, three new source keys in each of the 14 categories:
   42 creates, zero updates and zero skips. New listing IDs are 72–113.
+  Public live count at 04:44 UTC: 91 (before the four local-midnight expirations).
 - All 42 original URLs were reopened after publication. Job Bank identities and
   closing dates matched; JavaScript-dependent employer details were also checked.
 - Existing review: 21 closures, 48 active verifications, one unreachable original.
@@ -171,4 +173,3 @@ At completion, some public DNS edges still return older MX/SPF records; Zoho's S
 verification badge remains pending propagation. Actual Inbox delivery passed. Recheck
 SPF after DNS converges; do not add a second SPF record or replace unrelated mail
 settings. The only listing audit warning is original-source access blocking for job 15.
-
