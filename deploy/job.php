@@ -283,7 +283,8 @@ $fallback = '<main class="shell page detail"><article>'
         ? '<p>Source: <a href="' . wogo_html($sourceUrl) . '">'
             . wogo_html($sourceName !== '' ? $sourceName : 'original public listing')
             . '</a>'
-            . ($sourceVerified !== '' ? ' · last verified ' . wogo_html(substr($sourceVerified, 0, 10)) : '')
+            . ($sourceVerified !== '' ? ' · last checked ' . wogo_html(substr($sourceVerified, 0, 10)) : '')
+            . (($job['source_status'] ?? '') === 'unreachable' ? ' · the source could not be reached during that check' : '')
             . '</p>'
         : '')
     . '<p>Applications are handled directly by the employer.</p></section>'

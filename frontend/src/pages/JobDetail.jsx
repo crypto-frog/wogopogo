@@ -239,8 +239,9 @@ export default function JobDetail() {
                 {job.source.name || 'original public listing'} ↗
               </a>
               {job.source.verified_at
-                ? ` · last verified ${shortDate(job.source.verified_at)}`
+                ? ` · last checked ${shortDate(job.source.verified_at)}`
                 : ''}
+              {job.source.status === 'unreachable' && ' · the source could not be reached during that check'}
             </p>
           )}
           <p className="apply-note muted">
