@@ -37,6 +37,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
 
 require __DIR__ . '/helpers.php';
 require __DIR__ . '/db.php';
+require __DIR__ . '/notifications.php';
 
 set_exception_handler(function (Throwable $e) {
     error_log(
@@ -265,6 +266,9 @@ if ($route === 'jobs' && $method === 'POST') {
     ]);
 
     $newId = (int) $pdo->lastInsertId();
+    if ($status === 'pending') {
+        wogo_notification_enqueue($pdo, $cfg, $newId);
+    }
     wogo_rate_record($pdo);
     $createdJob = $pdo->prepare('SELECT * FROM jobs WHERE id = ?');
     $createdJob->execute([$newId]);
@@ -409,7 +413,7 @@ if (count($parts) === 3 && $parts[0] === 'admin' && $parts[1] === 'jobs'
         case 'approve':
             // Approval starts the clock so review time never eats the listing window
             $pdo->prepare("UPDATE jobs SET status = 'approved', expires_at = ?, updated_at = ? WHERE id = ?")
-                ->execute([gmdate('Y-m-d H:i:s', time() + $life * 86400), $now, $jobId]);
+                ->execute([wogo_job_expiry($cfg, $before), $now, $jobId]);
             break;
         case 'reject':
             $pdo->prepare("UPDATE jobs SET status = 'rejected', updated_at = ? WHERE id = ?")
@@ -432,7 +436,7 @@ if (count($parts) === 3 && $parts[0] === 'admin' && $parts[1] === 'jobs'
             break;
         case 'renew':
             $pdo->prepare('UPDATE jobs SET expires_at = ?, updated_at = ? WHERE id = ?')
-                ->execute([gmdate('Y-m-d H:i:s', time() + $life * 86400), $now, $jobId]);
+                ->execute([wogo_job_expiry($cfg, $before), $now, $jobId]);
             break;
         case 'delete':
             $pdo->prepare('DELETE FROM jobs WHERE id = ?')->execute([$jobId]);

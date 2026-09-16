@@ -61,6 +61,7 @@ const requiredDeployFiles = [
   'deploy/api/index.php',
   'deploy/api/db.php',
   'deploy/api/helpers.php',
+  'deploy/api/notifications.php',
   'deploy/api/config.php',
 ]
 

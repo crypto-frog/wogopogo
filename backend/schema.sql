@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     source_posted_at VARCHAR(10) NOT NULL DEFAULT '',
     source_verified_at VARCHAR(19) NOT NULL DEFAULT '',
     source_status VARCHAR(20) NOT NULL DEFAULT 'unverified',
+    source_deadline_at VARCHAR(19) NOT NULL DEFAULT '', -- UTC closing instant, empty when unspecified
     managed_origin VARCHAR(30) NOT NULL DEFAULT 'public'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -67,4 +68,17 @@ CREATE INDEX idx_rate_ip      ON rate_limits (ip, created_at);
 CREATE INDEX idx_rate_created ON rate_limits (created_at);
 CREATE INDEX idx_ops_created  ON ops_audit (created_at);
 
-REPLACE INTO app_meta (meta_key, meta_value) VALUES ('schema_version', '3');
+-- Additive schema version 4: pending submission emails survive HTTP/mail failures.
+CREATE TABLE IF NOT EXISTS submission_notifications (
+    job_id INT NOT NULL PRIMARY KEY,
+    state VARCHAR(20) NOT NULL,
+    attempts INT NOT NULL DEFAULT 0,
+    available_at VARCHAR(19) NOT NULL,
+    started_at VARCHAR(19) NOT NULL DEFAULT '',
+    sent_at VARCHAR(19) NOT NULL DEFAULT '',
+    last_error VARCHAR(80) NOT NULL DEFAULT '',
+    created_at VARCHAR(19) NOT NULL,
+    INDEX idx_notification_due (state, available_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+REPLACE INTO app_meta (meta_key, meta_value) VALUES ('schema_version', '4');

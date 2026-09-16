@@ -66,7 +66,7 @@ function wogo_schema_is_current(PDO $pdo): bool
     try {
         $stmt = $pdo->prepare("SELECT meta_value FROM app_meta WHERE meta_key = 'schema_version'");
         $stmt->execute();
-        return (int) $stmt->fetchColumn() === 3;
+        return (int) $stmt->fetchColumn() >= 4;
     } catch (PDOException $e) {
         return false;
     }
@@ -121,6 +121,7 @@ function wogo_init_schema(PDO $pdo, array $cfg): void
         'source_posted_at' => "VARCHAR(10) NOT NULL DEFAULT ''",
         'source_verified_at' => "VARCHAR(19) NOT NULL DEFAULT ''",
         'source_status' => "VARCHAR(20) NOT NULL DEFAULT 'unverified'",
+        'source_deadline_at' => "VARCHAR(19) NOT NULL DEFAULT ''",
         'managed_origin' => "VARCHAR(30) NOT NULL DEFAULT 'public'",
     ];
     foreach ($jobColumns as $name => $definition) {
@@ -153,6 +154,17 @@ function wogo_init_schema(PDO $pdo, array $cfg): void
         created_at  VARCHAR(19)  NOT NULL
     )$suffix");
 
+    $pdo->exec("CREATE TABLE IF NOT EXISTS submission_notifications (
+        job_id INT NOT NULL PRIMARY KEY,
+        state VARCHAR(20) NOT NULL,
+        attempts INT NOT NULL DEFAULT 0,
+        available_at VARCHAR(19) NOT NULL,
+        started_at VARCHAR(19) NOT NULL DEFAULT '',
+        sent_at VARCHAR(19) NOT NULL DEFAULT '',
+        last_error VARCHAR(80) NOT NULL DEFAULT '',
+        created_at VARCHAR(19) NOT NULL
+    )$suffix");
+
     // Helpful indexes. MySQL has no portable IF NOT EXISTS form for indexes,
     // so check information_schema explicitly and let genuine DDL errors surface.
     $indexes = [
@@ -162,6 +174,7 @@ function wogo_init_schema(PDO $pdo, array $cfg): void
         ['idx_rate_ip',      'rate_limits', 'CREATE INDEX idx_rate_ip      ON rate_limits (ip, created_at)'],
         ['idx_rate_created', 'rate_limits', 'CREATE INDEX idx_rate_created ON rate_limits (created_at)'],
         ['idx_ops_created',  'ops_audit',    'CREATE INDEX idx_ops_created ON ops_audit (created_at)'],
+        ['idx_notification_due', 'submission_notifications', 'CREATE INDEX idx_notification_due ON submission_notifications (state, available_at)'],
     ];
     foreach ($indexes as [$name, $table, $sql]) {
         if ($isMysql) {
@@ -174,7 +187,7 @@ function wogo_init_schema(PDO $pdo, array $cfg): void
                 $pdo->exec($sql);
             }
         } else {
-            $pdo->exec(str_replace('CREATE INDEX', 'CREATE INDEX IF NOT EXISTS', $sql));
+            $pdo->exec((string) preg_replace('/^CREATE (UNIQUE )?INDEX /', 'CREATE $1INDEX IF NOT EXISTS ', $sql));
         }
     }
 
@@ -185,7 +198,7 @@ function wogo_init_schema(PDO $pdo, array $cfg): void
     }
 
     $pdo->prepare('REPLACE INTO app_meta (meta_key, meta_value) VALUES (?, ?)')
-        ->execute(['schema_version', '3']);
+        ->execute(['schema_version', '4']);
 }
 
 function wogo_column_exists(PDO $pdo, string $table, string $column): bool

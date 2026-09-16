@@ -28,6 +28,12 @@ export default function Admin() {
   const [busyId, setBusyId] = useState(null)
   const loadSequence = useRef(0)
   const activeTab = useRef(tab)
+  const requestedJob = Number(new URLSearchParams(window.location.search).get('job'))
+
+  useEffect(() => {
+    if (!unlocked || !requestedJob || loading) return
+    document.getElementById(`review-job-${requestedJob}`)?.scrollIntoView({ block: 'center' })
+  }, [unlocked, requestedJob, loading])
 
   function lockAdmin() {
     loadSequence.current += 1
@@ -192,7 +198,7 @@ export default function Admin() {
         ) : (
           <ul className="admin-list">
           {jobs.map((j) => (
-            <li key={j.id} className="admin-row">
+            <li key={j.id} id={`review-job-${j.id}`} className={`admin-row${j.id === requestedJob ? ' admin-row-requested' : ''}`}>
               <div className="admin-row-head">
                 <div>
                   <strong>
@@ -206,7 +212,7 @@ export default function Admin() {
                   {timeAgo(j.created_at)} · expires {shortDate(j.expires_at)} · {j.status}
                 </span>
               </div>
-              <details className="admin-desc">
+              <details className="admin-desc" open={j.id === requestedJob || undefined}>
                 <summary>Description &amp; contact</summary>
                 <div className="prose prose-sm">{j.description}</div>
                 <p className="mono muted">

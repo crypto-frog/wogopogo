@@ -20,14 +20,13 @@ export default function Footer() {
           </span>
           <p className="muted">
             Wogopogo is a free community job board for the Okanagan Valley, from Osoyoos to
-            Salmon Arm. Listings are posted by local employers and reviewed before they surface.
+            Salmon Arm. Employer submissions and sourced opportunities are reviewed before they surface.
           </p>
         </div>
         <nav className="footer-links" aria-label="Footer">
           <Link to="/post">Post a job</Link>
           <Link to="/manage">Manage a listing</Link>
-          {/* Add a real advertising contact or pricing link here when it is configured.
-              The placeholder is intentionally not shown in production. */}
+          <a href="mailto:hello@wogopogo.ca">hello@wogopogo.ca</a>
           <Link to="/admin" className="footer-admin">
             Admin
           </Link>

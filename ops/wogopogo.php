@@ -109,7 +109,10 @@ function cli_help(): array
             'job:export' => 'Export jobs as JSON. Options: --status, --limit.',
             'job:import' => 'Validate/import a version-1 JSON manifest. Requires --file; use --apply to write.',
             'job:act' => 'approve|reject|feature|unfeature|close|renew|delete. Requires --id and --action.',
-            'job:verify' => 'Record active|closed|unreachable source audit. Requires --id and --outcome.',
+            'job:verify' => 'Record active|closed|unreachable source audit. Optional --deadline-at UTC timestamp (or none).',
+            'notification:status' => 'Read submission email outbox counts.',
+            'notification:send' => 'Deliver due owner notifications; --limit 1..50, --apply, --actor and --reason required.',
+            'notification:resolve' => 'Resolve a failed/unknown handoff with --id and --resolution sent|retry after inspecting mail delivery.',
             'audit:jobs' => 'Check provenance, verification freshness, expiry, and application data.',
             'audit:list' => 'Read recent mutation audit events. Option: --limit.',
         ],
@@ -131,6 +134,8 @@ function cli_capabilities(): array
         ],
         'job_statuses' => ['pending', 'approved', 'rejected', 'closed'],
         'source_statuses' => ['active', 'closed', 'unreachable', 'unverified'],
+        'source_deadline_at' => 'Optional UTC closing instant; import, verification, approval and renewal cap listing expiry.',
+        'submission_notifications' => 'Transactional owner-only outbox; private scheduled send; interrupted handoffs require explicit resolution.',
         'commercial' => [
             'current_tiers' => ['free', 'featured'],
             'feature_requires' => ['--commercial-mode', '--commercial-reference'],
@@ -305,6 +310,10 @@ function cli_validate_manifest(array $manifest, array $cfg, PDO $pdo): array
         $status = cli_manifest_string($raw, 'status', 20, false) ?: 'pending';
         $tier = cli_manifest_string($raw, 'tier', 20, false) ?: 'free';
         $sourceStatus = cli_manifest_string($raw, 'source_status', 20, false) ?: 'active';
+        $deadline = cli_manifest_string($raw, 'source_deadline_at', 19, false);
+        if ($deadline !== '' && (!cli_valid_timestamp($deadline) || $deadline <= wogo_now())) {
+            cli_fail('Source deadline must be an unexpired UTC timestamp.', ['index' => $index]);
+        }
         if (!in_array($status, ['pending', 'approved'], true)
             || !in_array($tier, ['free', 'featured'], true)
             || !in_array($sourceStatus, ['active', 'unreachable', 'unverified'], true)) {
@@ -333,6 +342,8 @@ function cli_validate_manifest(array $manifest, array $cfg, PDO $pdo): array
             'source_posted_at' => $postedAt,
             'source_verified_at' => $verifiedAt,
             'source_status' => $sourceStatus,
+            'source_deadline_at' => $deadline,
+            'source_deadline_provided' => array_key_exists('source_deadline_at', $raw),
         ];
     }
     return $normalized;
@@ -363,10 +374,37 @@ if ($command === 'capabilities') {
 $appRoot = cli_app_root($options);
 require $appRoot . '/api/helpers.php';
 require $appRoot . '/api/db.php';
+require $appRoot . '/api/notifications.php';
 $cfg = require $appRoot . '/api/config.php';
 $pdo = wogo_db($cfg);
 
 try {
+    if ($command === 'notification:status') {
+        cli_json(['ok' => true, 'enabled' => (bool) ($cfg['submission_notifications']['enabled'] ?? false),
+            'counts' => wogo_notification_status($pdo)]);
+    }
+    if ($command === 'notification:send') {
+        [$actor, $reason] = cli_write_context($options);
+        cli_json(['ok' => true] + wogo_notification_send($pdo, $cfg,
+            cli_int($options, 'limit', 10, 1, 50), $actor, $reason));
+    }
+    if ($command === 'notification:resolve') {
+        [$actor, $reason] = cli_write_context($options);
+        $id = cli_int($options, 'id', 0, 1, PHP_INT_MAX);
+        $resolution = cli_string($options, 'resolution');
+        if (!in_array($resolution, ['sent', 'retry'], true)) {
+            cli_fail('Resolution must be sent or retry after checking actual delivery.');
+        }
+        $pdo->beginTransaction();
+        $update = $pdo->prepare("UPDATE submission_notifications SET state = ?, available_at = ?, last_error = '', sent_at = ?
+                                WHERE job_id = ? AND state IN ('unknown', 'failed')");
+        $update->execute([$resolution === 'retry' ? 'pending' : 'sent', wogo_now(), $resolution === 'sent' ? wogo_now() : '', $id]);
+        if ($update->rowCount() !== 1) {
+            $pdo->rollBack(); cli_fail('Only a failed or unknown notification can be resolved.');
+        }
+        wogo_audit($pdo, $actor, 'notification.resolve.' . $resolution, 'job', $id, '', $reason, [], ['resolution' => $resolution]);
+        $pdo->commit(); cli_json(['ok' => true, 'id' => $id, 'resolution' => $resolution]);
+    }
     if ($command === 'status') {
         $counts = [];
         foreach ($pdo->query('SELECT status, COUNT(*) AS count FROM jobs GROUP BY status') as $row) {
@@ -461,13 +499,13 @@ try {
         [$actor, $reason] = cli_write_context($options);
         $life = (int) $cfg['job_lifetime_days'];
         $now = wogo_now();
-        $expires = gmdate('Y-m-d H:i:s', time() + $life * 86400);
         $created = 0;
         $updated = 0;
         $skipped = 0;
         $ids = [];
         $pdo->beginTransaction();
         foreach ($jobs as $job) {
+            $expires = wogo_job_expiry($cfg, $job);
             $lookup->execute([$job['source_key']]);
             $existingId = $lookup->fetchColumn();
             if ($existingId && !$updateExisting) {
@@ -477,16 +515,21 @@ try {
             }
             if ($existingId) {
                 $before = cli_job($pdo, (int) $existingId) ?: [];
+                if (!$job['source_deadline_provided']) {
+                    $job['source_deadline_at'] = (string) ($before['source_deadline_at'] ?? '');
+                    $expires = wogo_job_expiry($cfg, $job);
+                }
                 $pdo->prepare(
                     'UPDATE jobs SET title = ?, company = ?, category_id = ?, location = ?, job_type = ?,
                      pay = ?, description = ?, apply_email = ?, apply_url = ?, status = ?, tier = ?,
                      updated_at = ?, source_name = ?, source_url = ?, source_posted_at = ?,
-                     source_verified_at = ?, source_status = ?, managed_origin = ? WHERE id = ?'
+                     source_verified_at = ?, source_status = ?, managed_origin = ?, source_deadline_at = ?, expires_at = ? WHERE id = ?'
                 )->execute([
                     $job['title'], $job['company'], $job['category_id'], $job['location'], $job['job_type'],
                     $job['pay'], $job['description'], $job['apply_email'], $job['apply_url'], $job['status'],
                     $job['tier'], $now, $job['source_name'], $job['source_url'], $job['source_posted_at'],
-                    $job['source_verified_at'], $job['source_status'], 'agent-import', (int) $existingId,
+                    $job['source_verified_at'], $job['source_status'], 'agent-import', $job['source_deadline_at'],
+                    min((string) $before['expires_at'], $expires), (int) $existingId,
                 ]);
                 $after = cli_job($pdo, (int) $existingId) ?: [];
                 wogo_audit($pdo, $actor, 'job.import.update', 'job', (int) $existingId, $job['source_key'],
@@ -500,14 +543,14 @@ try {
                 'INSERT INTO jobs
                  (title, company, category_id, location, job_type, pay, description, apply_email, apply_url,
                   status, tier, manage_hash, created_at, updated_at, expires_at, source_key, source_name,
-                  source_url, source_posted_at, source_verified_at, source_status, managed_origin)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                  source_url, source_posted_at, source_verified_at, source_status, managed_origin, source_deadline_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             )->execute([
                 $job['title'], $job['company'], $job['category_id'], $job['location'], $job['job_type'],
                 $job['pay'], $job['description'], $job['apply_email'], $job['apply_url'], $job['status'],
                 $job['tier'], hash('sha256', bin2hex(random_bytes(32))), $now, $now, $expires,
                 $job['source_key'], $job['source_name'], $job['source_url'], $job['source_posted_at'],
-                $job['source_verified_at'], $job['source_status'], 'agent-import',
+                $job['source_verified_at'], $job['source_status'], 'agent-import', $job['source_deadline_at'],
             ]);
             $id = (int) $pdo->lastInsertId();
             $after = cli_job($pdo, $id) ?: [];
@@ -550,7 +593,7 @@ try {
         switch ($action) {
             case 'approve':
                 $pdo->prepare("UPDATE jobs SET status = 'approved', expires_at = ?, updated_at = ? WHERE id = ?")
-                    ->execute([gmdate('Y-m-d H:i:s', time() + (int) $cfg['job_lifetime_days'] * 86400), $now, $id]);
+                    ->execute([wogo_job_expiry($cfg, $before), $now, $id]);
                 break;
             case 'reject':
             case 'close':
@@ -566,7 +609,7 @@ try {
                 break;
             case 'renew':
                 $pdo->prepare('UPDATE jobs SET expires_at = ?, updated_at = ? WHERE id = ?')
-                    ->execute([gmdate('Y-m-d H:i:s', time() + (int) $cfg['job_lifetime_days'] * 86400), $now, $id]);
+                    ->execute([wogo_job_expiry($cfg, $before), $now, $id]);
                 break;
             case 'delete':
                 $pdo->prepare('DELETE FROM jobs WHERE id = ?')->execute([$id]);
@@ -603,6 +646,20 @@ try {
             $pdo->prepare('UPDATE jobs SET source_status = ?, source_verified_at = ?, updated_at = ? WHERE id = ?')
                 ->execute([$outcome, $now, $now, $id]);
         }
+        if (array_key_exists('deadline-at', $options)) {
+            $deadline = cli_string($options, 'deadline-at');
+            if ($deadline === 'none') {
+                $deadline = '';
+            } elseif (!cli_valid_timestamp($deadline)) {
+                $pdo->rollBack(); cli_fail('--deadline-at must be a UTC timestamp or none.');
+            }
+            if ($outcome === 'active' && $deadline !== '' && $deadline <= $now) {
+                $pdo->rollBack(); cli_fail('An expired source cannot be verified active.');
+            }
+            $expires = $deadline === '' ? (string) $before['expires_at'] : min((string) $before['expires_at'], $deadline);
+            $pdo->prepare('UPDATE jobs SET source_deadline_at = ?, expires_at = ? WHERE id = ?')
+                ->execute([$deadline, $expires, $id]);
+        }
         $after = cli_job($pdo, $id) ?: [];
         wogo_audit($pdo, $actor, 'job.verify.' . $outcome, 'job', $id, (string) $before['source_key'],
             $reason, wogo_audit_job($before), wogo_audit_job($after));
@@ -617,14 +674,16 @@ try {
         $threshold = gmdate('Y-m-d H:i:s', time() - $freshDays * 86400);
         foreach ($rows as $row) {
             $id = (int) $row['id'];
+            $isLive = $row['status'] === 'approved' && $row['expires_at'] > wogo_now();
             $checks = [
                 ['source_key', trim((string) $row['source_key']) !== '', 'error'],
                 ['source_url', cli_http_url((string) $row['source_url']), 'error'],
                 ['apply_url', cli_http_url((string) $row['apply_url']), 'error'],
-                ['source_active', (string) $row['source_status'] === 'active',
+                ['source_active', !$isLive || (string) $row['source_status'] === 'active',
                     (string) $row['source_status'] === 'unreachable' ? 'warning' : 'error'],
-                ['verification_fresh', (string) $row['source_verified_at'] >= $threshold, 'warning'],
-                ['not_expired', (string) $row['status'] !== 'approved' || (string) $row['expires_at'] > wogo_now(), 'error'],
+                ['verification_fresh', !$isLive || (string) $row['source_verified_at'] >= $threshold, 'warning'],
+                ['source_deadline_respected', empty($row['source_deadline_at'])
+                    || $row['expires_at'] <= $row['source_deadline_at'], 'error'],
             ];
             foreach ($checks as [$check, $passed, $severity]) {
                 if (!$passed) {

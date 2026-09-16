@@ -221,6 +221,8 @@ export default function PostJob() {
       )}
 
       <form className="form" onSubmit={submit} noValidate>
+        <p className="muted">Your listing details are emailed to Wogopogo’s reviewer through Zoho Mail.
+          Questions? <a href="mailto:hello@wogopogo.ca">hello@wogopogo.ca</a>.</p>
         <div className="field">
           <label htmlFor="f-title">Job title</label>
           <input

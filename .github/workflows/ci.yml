@@ -63,10 +63,17 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
+          extensions: mbstring, pdo_sqlite
           coverage: none
 
       - name: Lint PHP source, operations, and deployment files
         run: find backend deploy ops -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Verify submission outbox and deadline handling
+        run: php backend/tests/maintenance.php
+
+      - name: Verify real API and CLI workflows with an isolated mail capture
+        run: python3 backend/tests/integration.py
 
   publication-safety:
     name: Public repository safety

@@ -32,6 +32,14 @@ $CONFIG = [
     // New listings wait for approval by default.
     'require_approval' => true,
 
+    // Activate only after Zoho delivery is verified. The private scheduled CLI
+    // drains the transactional outbox; public requests never send email.
+    'submission_notifications' => [
+        'enabled' => false,
+        'to' => 'hello@wogopogo.ca',
+        'from' => 'hello@wogopogo.ca',
+    ],
+
     // Approved listings remain live for this many days.
     'job_lifetime_days' => 30,
 

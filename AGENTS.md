@@ -94,3 +94,12 @@ When a request says to add a number of jobs per category, interpret that as that
 The current commercial surface is `free` versus `featured`. A CLI `feature` action requires a commercial mode and reference so complimentary, manually paid, and provider-confirmed promotions remain distinguishable in the audit trail.
 
 Future payment automation must be webhook-driven, idempotent on the provider event/reference, signature-verified, and separated from AI judgment. An agent may reconcile provider-confirmed events and manage content, but it must not create, fabricate, or override payment truth. Update `ops/wogopogo.php`, its capabilities response, the manifest/schema contract, tests, and `MONETIZATION.md` together whenever a paid workflow changes.
+
+## Mail and source-deadline maintenance
+
+Read [docs/MAIL.md](docs/MAIL.md) for the Zoho owner-only route and transactional
+submission outbox. Keep the scheduled worker and private CLI outside the web root.
+Never retry a possibly delivered notification without checking its actual delivery.
+Schema 4 adds `source_deadline_at`; interpret source dates in their local timezone
+and preserve explicit closing times. Renewal must never extend a source deadline.
+Run both backend maintenance and API/CLI integration suites for lifecycle/mail changes.

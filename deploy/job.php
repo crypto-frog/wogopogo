@@ -89,6 +89,7 @@ function wogo_render_index(
     }
 
     $index = str_replace('</head>', $meta . "\n  </head>", $index);
+    $fallback .= '<footer class="shell"><a href="mailto:hello@wogopogo.ca">hello@wogopogo.ca</a></footer>';
     $fallbackPattern = '#<!--wogo-fallback-start-->.*?<!--wogo-fallback-end-->#s';
     if (preg_match($fallbackPattern, $index)) {
         $index = (string) preg_replace_callback(

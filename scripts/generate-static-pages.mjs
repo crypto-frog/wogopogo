@@ -17,7 +17,8 @@ function replaceRoot(document, fallback) {
   if (!document.includes(marker)) throw new Error('Built HTML is missing the React root marker')
   return document.replace(
     marker,
-    `<div id="root"><!--wogo-fallback-start-->${fallback}<!--wogo-fallback-end--></div>`
+    `<div id="root"><!--wogo-fallback-start-->${fallback}
+      <footer class="site-footer"><p class="shell footer-fine">Questions? <a href="mailto:hello@wogopogo.ca">hello@wogopogo.ca</a></p></footer><!--wogo-fallback-end--></div>`
   )
 }
 

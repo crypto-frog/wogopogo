@@ -54,7 +54,12 @@
           "type": "string",
           "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$"
         },
-        "source_status": { "enum": ["active", "unreachable", "unverified"] }
+        "source_status": { "enum": ["active", "unreachable", "unverified"] },
+        "source_deadline_at": {
+          "type": "string",
+          "description": "Exclusive UTC closing instant; date-only deadlines use the next local midnight, converted to UTC. Empty when no deadline is stated.",
+          "pattern": "^$|^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$"
+        }
       }
     }
   }

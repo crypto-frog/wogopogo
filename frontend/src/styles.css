@@ -1042,7 +1042,7 @@ button {
 
 /* ------------------------------------------------------ pages */
 .page {
-  padding: 38px 0 64px;
+  padding-block: 38px 64px;
 }
 
 .page-narrow {
@@ -1152,11 +1152,17 @@ button {
 .field {
   display: grid;
   gap: 6px;
+  min-width: 0;
+}
+
+.field .select {
+  width: 100%;
+  min-width: 0;
 }
 
 .field-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 185px), 1fr));
   gap: 14px;
 }
 
@@ -1568,3 +1574,6 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* The emailed review link identifies its listing without approving it. */
+.admin-row-requested { outline: 2px solid var(--accent); outline-offset: 3px; scroll-margin-block: 2rem; }

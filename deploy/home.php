@@ -97,7 +97,8 @@ $fallback = '<main id="main-content">'
     . '<p>Job seekers browse without an account. Employers post directly, keep a private management '
     . 'token, and close a listing when the position is filled.</p>'
     . '</div></section>'
-    . '</main>';
+    . '</main><footer class="site-footer"><p class="shell footer-fine">Questions? '
+    . '<a href="mailto:hello@wogopogo.ca">hello@wogopogo.ca</a></p></footer>';
 
 $markerPattern = '#<!--wogo-fallback-start-->.*?<!--wogo-fallback-end-->#s';
 if (preg_match($markerPattern, $index)) {

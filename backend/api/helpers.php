@@ -89,6 +89,14 @@ function wogo_now(): string
     return gmdate('Y-m-d H:i:s');
 }
 
+/** Listing lifetime never extends beyond a verified external closing instant. */
+function wogo_job_expiry(array $cfg, array $job = []): string
+{
+    $expiry = gmdate('Y-m-d H:i:s', time() + (int) $cfg['job_lifetime_days'] * 86400);
+    $deadline = (string) ($job['source_deadline_at'] ?? '');
+    return $deadline === '' ? $expiry : min($expiry, $deadline);
+}
+
 function wogo_client_ip(): string
 {
     // On shared hosting REMOTE_ADDR is the honest value.

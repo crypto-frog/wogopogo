@@ -152,3 +152,24 @@ Never edit a past release in place, never upload `config.local.php` from a works
 6. Moderate organic submissions without changing their origin or rewriting them as imports. Leave uncertain cases pending for the owner.
 7. Run `audit:jobs`, inspect the private counts, verify the public API and sample job pages, and re-open newly published source URLs.
 8. Report backup creation, imported creates/updates/skips/closures, organic decisions, remaining pending IDs, category totals, and verification failures as separate figures.
+
+## Source deadlines and notification maintenance
+
+Schema 4 adds optional `source_deadline_at`, a UTC closing instant. Import, source
+verification, approval and renewal cap public `expires_at` at that instant. A renewal
+cannot make an expired source public again. For a date-only Okanagan deadline, use
+midnight **after** that date in `America/Vancouver`, converted to UTC; preserve any
+explicit earlier closing time in the source. Never substitute the audit date for the
+source's original posting date. An undated source retains the configured lifetime.
+
+`job:verify --outcome active --deadline-at 'YYYY-MM-DD HH:MM:SS'` records a verified
+future deadline and caps expiry. Use `--deadline-at none` only after verifying that
+the source no longer specifies a deadline; this does not automatically renew a job.
+An update manifest that omits `source_deadline_at` preserves the existing deadline.
+Historical closed or expired rows remain in the audit without being misreported as
+live-source failures. Live unreachable sources remain warnings requiring follow-up.
+
+Read [MAIL.md](docs/MAIL.md) before mail maintenance. Check `notification:status` and
+the scheduled worker's latest receipt, investigate failed/unknown deliveries, and
+preserve the owner-only route. No private-model processing or automatic applicant
+replies are authorized by the job-submission notification feature.
