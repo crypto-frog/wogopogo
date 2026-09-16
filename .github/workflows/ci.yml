@@ -75,6 +75,9 @@ jobs:
       - name: Verify real API and CLI workflows with an isolated mail capture
         run: python3 backend/tests/integration.py
 
+      - name: Verify scheduled worker under a minimal cron environment
+        run: python3 backend/tests/cron.py
+
   publication-safety:
     name: Public repository safety
     runs-on: ubuntu-latest

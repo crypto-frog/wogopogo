@@ -53,6 +53,11 @@ modification times and `notification:status` during maintenance; an old error re
 is historical if a newer success exists. A rollback to a pre-outbox release pauses the
 runner and preserves queued notifications for a corrected release.
 
+The runner explicitly uses `/usr/local/bin/php`: Bluehost's minimal cron PATH can
+resolve `php` to its CGI executable instead. It verifies CLI mode and a successful
+JSON response before recording success. Other hosts can set `WOGOPOGO_PHP_CLI` to
+their absolute CLI executable. Test this boundary with `python3 backend/tests/cron.py`.
+
 ## Delivery and recovery
 
 ```sh
