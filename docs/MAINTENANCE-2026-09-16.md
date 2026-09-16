@@ -10,10 +10,9 @@ pending submissions, connect Zoho contact mail and email new submissions for rev
   no longer advertised. All 21 were closed through the audited private CLI.
 - 48 other original pages were accessible and current; verified deadlines were
   recorded as UTC closing instants through schema 4.
-- One original Workopolis page (listing 15, AI Solutions Specialist) blocks access
-  with HTTP 403. Matching recent listings exist elsewhere, but this is not sufficient
-  to mark its original source verified. Retain it with an unreachable-source warning,
-  pending a fresh original-source check; access blocking is not proof of closure.
+- Initial check: Workopolis blocked listing 15, AI Solutions Specialist, with HTTP 403.
+  It was retained as unreachable. The follow-up below resolves this warning through
+  the matching employer requisition and a working direct application path.
 - Full database and record exports were retained privately before changes.
 
 ## Closed imported listings
@@ -172,4 +171,81 @@ Regression tests cover both failures and rollback pausing.
 At completion, some public DNS edges still return older MX/SPF records; Zoho's SPF
 verification badge remains pending propagation. Actual Inbox delivery passed. Recheck
 SPF after DNS converges; do not add a second SPF record or replace unrelated mail
-settings. The only listing audit warning is original-source access blocking for job 15.
+settings. The initial job 15 warning is resolved by the follow-up below.
+
+## Follow-up · September 16, 05:08 UTC
+
+The owner requested completion of the remaining source and DNS checks.
+
+### Direct employer source resolves listing 15
+
+The original Workopolis detail became readable but its Quick apply link redirected to
+the job-board homepage. Following [Mark Anthony Group's official careers directory](https://markanthony.com/careers)
+led to the matching **AISOL006530** requisition, posted August 25, 2026, in West Kelowna.
+The complete role, qualifications and pay matched the listing. Its Apply now button
+opens the employer's applicant sign-in/register page; no account or application was
+created. The employer states no closing deadline.
+
+Listing 15 now attributes and links to the
+[direct employer posting](https://recruiting2.ultipro.com/MAR5000MAG/JobBoard/8febf0ae-8776-428e-b625-2faa005b7fc1/OpportunityDetail?opportunityId=dce95e4a-87d6-440a-aab1-ff212409156a).
+One audited import update was applied after a private export and dry run: zero creates,
+one update, zero skips. The original stable import key remains intentionally unchanged
+for identity and history; its old Workopolis prefix is not the current source label.
+Origin, listing ID, original posting date and September 30 expiry are preserved.
+
+The public page, application link, API source status and employer page reopened after
+the update passed five checks. The imported-listing audit now reports **zero errors
+and zero warnings**. No organic submissions await moderation. This update generated
+no notification; the earlier controlled test remains the only accepted review email.
+Private backup and receipts: `~/wogopogo_backups/followup-20260916T0500`.
+
+### SPF correction and scheduled mail
+
+A recursive SPF check found a real problem beyond propagation: the first merged
+record expanded to **14 DNS lookup terms**, above SPF's limit of ten. Bluehost's
+umbrella include also authorizes Google Workspace and Microsoft 365; neither is a
+configured Wogopogo mail service. The corrected record keeps the shared-host IPv4,
+Zoho's published sender definition and Bluehost's actual Cloudfilter/Websitewelcome
+sending networks, while dropping the unused umbrella services and redundant a/mx
+mechanisms:
+
+```text
+v=spf1 ip4:50.87.176.226 include:zohocloud.ca include:eig.spf.a.cloudfilter.net include:spf.websitewelcome.com ~all
+```
+
+The complete recursive tree uses **nine lookup terms** with the providers' current
+records. All 167 retained network-boundary cases pass; an unlisted sender returns
+softfail within nine lookups. Provider network definitions remain dynamic includes,
+not a frozen copy of IP ranges. Future provider changes can alter lookup counts, so
+check the complete nested tree when maintaining SPF.
+
+The exact single-record update was backed up and applied at 05:13 UTC using the current
+zone serial. Whole-zone comparison confirmed that all unrelated records, MX, DKIM,
+DMARC, nameservers and website addresses were preserved. Authenticated cPanel
+independently confirms exactly one corrected SPF record. The earlier assertion that
+merging the two defaults alone was sufficient is superseded by this correction.
+
+[Zoho's SPF guidance](https://www.zoho.com/mail/help/adminconsole/spf-configuration.html)
+explains the ten-lookup limit and removal of unused service entries;
+[Bluehost's guidance](https://www.bluehost.com/help/article/dns-spf) identifies its
+Websitewelcome sending infrastructure. Recheck actual provider DNS rather than treating
+this dated lookup count as permanent.
+
+The live minute worker has a fresh success receipt, zero pending/failed/unknown
+notifications and exactly one prior accepted notification, independently seen in Zoho
+Inbox. The broker has now ingested that same message as `needs-owner` with category
+`needs-owner-cross-site-or-private-route`, confirming owner-review isolation. No test
+was repeated and no autonomous reply or model request was made.
+
+Public DNS/Zoho cache convergence is checked separately from the provider update.
+The website's v1.4.3 application remains unchanged. Private DNS plan, before-zone and
+one-shot execution receipts accompany the job export in the follow-up backup directory.
+
+At 05:16 UTC, the corrected nine-lookup value was visible from Cloudflare UDP and one
+authoritative TCP endpoint; other sampled paths still returned cached earlier values.
+Zoho's SPF page now reports verification success, including after a reload, but its
+value display still shows a historical record. Treat that badge as provider acceptance,
+not proof that every DNS cache has the exact corrected value. Allow the existing TXT
+TTL to expire and compare the complete value above on a later maintenance check.
+No new sender test was sent: the established Inbox delivery and retained-network
+validation are recorded separately from this remaining cache-convergence limitation.

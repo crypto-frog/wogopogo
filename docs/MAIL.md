@@ -76,9 +76,9 @@ and delivery records before using `notification:resolve --id ID --resolution sen
 with the required `--apply --actor --reason`. Resolution is private, audited and never
 available through a public URL. Stale `sending` records are held after ten minutes.
 
-DNS includes Canadian Zoho MX, a single combined Zoho/Bluehost SPF record, Zoho
+DNS includes Canadian Zoho MX, a single scoped Zoho/Bluehost SPF record, Zoho
 2048-bit DKIM selector `wogo202609` and monitoring-mode DMARC. Bluehost's existing
-DKIM and sending authorization are retained for application notifications. The domain
+DKIM and active sending networks are retained for application notifications. The domain
 uses Remote mail routing; there was no Wogopogo mailbox or forwarder to migrate.
 Website addresses, nameservers, other domains and existing mail routes are preserved.
 
@@ -89,4 +89,11 @@ Synthetic tests: `php backend/tests/maintenance.php` and
 HTTP server and fake sendmail transport; it never sends real mail.
 
 See the [September 16 maintenance record](MAINTENANCE-2026-09-16.md) for the live
-v1.4.3 release, verified Zoho Inbox delivery, counts and DNS-propagation follow-up. Source code alone is not evidence of activation.
+v1.4.3 release, verified Zoho Inbox delivery, counts and the latest mail follow-up.
+The September 16 follow-up reduced the nested SPF tree from 14 to nine lookup terms
+by selecting the active providers' sending definitions. The exact record and rollback
+receipts are documented there. Check the complete recursive tree, not just the number
+of top-level includes, and verify cache convergence separately. Zoho accepted SPF
+verification on the follow-up, while its displayed value and some public caches
+still showed an earlier record. Source code alone
+is not evidence of activation.
