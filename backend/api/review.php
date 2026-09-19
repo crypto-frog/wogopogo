@@ -113,36 +113,42 @@ const WOGO_FONT = "'Manrope','Segoe UI',system-ui,-apple-system,'Helvetica Neue'
 const WOGO_MONO = "ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace";
 const WOGO_MARK = '<svg width="34" height="16" viewBox="0 0 34 16" aria-hidden="true"><path d="M2 12c3-6 6-6 8 0M11 12c3-6 6-6 8 0M20 12c2-8 7-9 9-5" fill="none" stroke="#aab8d2" stroke-width="2.4" stroke-linecap="round"/><circle cx="30" cy="5" r="2.2" fill="#aab8d2"/></svg>';
 
+// The email uses a light card under a charcoal Wogopogo header. Mail clients (Zoho included)
+// recolour dark emails unpredictably in dark mode; a light body stays crisp everywhere.
+const MAIL_BG = '#eef0f3', MAIL_HEAD = '#16181c', MAIL_CARD = '#ffffff', MAIL_INK = '#16181c', MAIL_DIM = '#5b6270',
+      MAIL_LINE = '#dde1e6', MAIL_ACCENT = '#2f4a78', MAIL_SOFT = '#f5f6f8';
+
 /** Email HTML: tables and inline styles only, so Zoho, Gmail and phones render it alike. */
 function wogo_review_email_html(array $job, string $reviewUrl): string
 {
     $rows = '';
     foreach (wogo_review_fields($job) as $label => $value) {
-        $shown = $value === '' ? '<span style="color:' . WOGO_DIM . '">Not provided</span>' : nl2br(wogo_h($value));
-        $rows .= '<tr><td style="width:130px;padding:7px 14px 7px 0;font:12px/1.5 ' . WOGO_MONO . ';color:' . WOGO_DIM . ';vertical-align:top;white-space:nowrap">' . wogo_h($label)
-            . '</td><td style="padding:7px 0;font:14px/1.5 ' . WOGO_FONT . ';color:' . WOGO_INK . ';vertical-align:top">' . $shown . '</td></tr>';
+        $shown = $value === '' ? '<span style="color:' . MAIL_DIM . '">Not provided</span>' : nl2br(wogo_h($value));
+        $rows .= '<tr><td style="width:130px;padding:8px 14px 8px 0;font:12px/1.5 ' . WOGO_MONO . ';color:' . MAIL_DIM . ';vertical-align:top;white-space:nowrap;border-bottom:1px solid ' . MAIL_LINE . '">' . wogo_h($label)
+            . '</td><td style="padding:8px 0;font:14px/1.5 ' . WOGO_FONT . ';color:' . MAIL_INK . ';vertical-align:top;border-bottom:1px solid ' . MAIL_LINE . '">' . $shown . '</td></tr>';
     }
     $desc = nl2br(wogo_h((string) ($job['description'] ?? '')));
     $button = static fn (string $label, string $url, bool $primary): string =>
-        '<a href="' . wogo_h($url) . '" style="display:inline-block;padding:12px 22px;margin:4px 8px 4px 0;border-radius:10px;font:700 15px/1.2 ' . WOGO_FONT . ';text-decoration:none;'
-        . ($primary ? 'background:' . WOGO_ACCENT . ';color:' . WOGO_ACCENT_INK . ';' : 'background:transparent;color:' . WOGO_ACCENT . ';border:1px solid ' . WOGO_ACCENT . ';') . '">' . $label . '</a>';
-    return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark light"><title>New listing to review</title></head>'
-        . '<body style="margin:0;padding:0;background:' . WOGO_BG . '">'
+        '<a href="' . wogo_h($url) . '" style="display:inline-block;padding:13px 24px;margin:4px 8px 4px 0;border-radius:10px;font:700 15px/1.2 ' . WOGO_FONT . ';text-decoration:none;border:2px solid ' . MAIL_ACCENT . ';'
+        . ($primary ? 'background:' . MAIL_ACCENT . ';color:#ffffff;' : 'background:#ffffff;color:' . MAIL_ACCENT . ';') . '">' . $label . '</a>';
+    return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><title>New listing to review</title></head>'
+        . '<body style="margin:0;padding:0;background:' . MAIL_BG . '">'
         . '<div style="display:none;max-height:0;overflow:hidden">' . wogo_h($job['title'] . ' at ' . $job['company'] . ' is waiting for your approval.') . '</div>'
-        . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:' . WOGO_BG . '"><tr><td align="center" style="padding:28px 14px">'
+        . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:' . MAIL_BG . '"><tr><td align="center" style="padding:26px 12px">'
         . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px">'
-        . '<tr><td style="padding:0 4px 18px"><table role="presentation" width="100%"><tr><td style="font:800 20px/1 ' . WOGO_FONT . ';color:' . WOGO_INK . '">' . WOGO_MARK . '&nbsp; Wogopogo</td>'
-        . '<td align="right" style="font:11px/1 ' . WOGO_MONO . ';letter-spacing:.14em;color:' . WOGO_DIM . '">NEW LISTING TO REVIEW</td></tr></table></td></tr>'
-        . '<tr><td style="background:' . WOGO_CARD . ';border:1px solid ' . WOGO_LINE . ';border-radius:16px;padding:26px 26px 22px">'
-        . '<div style="font:11px/1.4 ' . WOGO_MONO . ';letter-spacing:.14em;color:' . WOGO_DIM . '">OKANAGAN VALLEY · FREE JOB BOARD</div>'
-        . '<div style="font:800 26px/1.2 ' . WOGO_FONT . ';color:' . WOGO_INK . ';margin:10px 0 4px">' . wogo_h($job['title']) . '</div>'
-        . '<div style="font:15px/1.5 ' . WOGO_FONT . ';color:' . WOGO_DIM . ';margin-bottom:16px">' . wogo_h($job['company']) . ' · ' . wogo_h($job['location']) . '</div>'
+        . '<tr><td style="background:' . MAIL_HEAD . ';border-radius:16px 16px 0 0;padding:18px 24px"><table role="presentation" width="100%"><tr>'
+        . '<td style="font:800 20px/1 ' . WOGO_FONT . ';color:#ffffff">' . WOGO_MARK . '&nbsp; Wogopogo</td>'
+        . '<td align="right" style="font:11px/1 ' . WOGO_MONO . ';letter-spacing:.14em;color:#aab8d2">NEW LISTING TO REVIEW</td></tr></table></td></tr>'
+        . '<tr><td style="background:' . MAIL_CARD . ';border:1px solid ' . MAIL_LINE . ';border-top:0;border-radius:0 0 16px 16px;padding:26px 24px 22px">'
+        . '<div style="font:11px/1.4 ' . WOGO_MONO . ';letter-spacing:.14em;color:' . MAIL_DIM . '">OKANAGAN VALLEY · FREE JOB BOARD</div>'
+        . '<div style="font:800 26px/1.2 ' . WOGO_FONT . ';color:' . MAIL_INK . ';margin:10px 0 4px">' . wogo_h($job['title']) . '</div>'
+        . '<div style="font:15px/1.5 ' . WOGO_FONT . ';color:' . MAIL_DIM . ';margin-bottom:16px">' . wogo_h($job['company']) . ' · ' . wogo_h($job['location']) . '</div>'
         . '<div style="margin:6px 0 18px">' . $button('Review &amp; approve', $reviewUrl, true) . $button('Open in admin', 'https://wogopogo.ca/admin?job=' . (int) $job['id'], false) . '</div>'
-        . '<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-top:1px solid ' . WOGO_LINE . ';margin-top:4px">' . $rows . '</table>'
-        . '<div style="font:12px/1.5 ' . WOGO_MONO . ';color:' . WOGO_DIM . ';margin:18px 0 8px">DESCRIPTION</div>'
-        . '<div style="font:15px/1.65 ' . WOGO_FONT . ';color:' . WOGO_INK . ';background:' . WOGO_BG . ';border:1px solid ' . WOGO_LINE . ';border-radius:12px;padding:14px 16px">' . $desc . '</div>'
-        . '<div style="font:13px/1.6 ' . WOGO_FONT . ';color:' . WOGO_DIM . ';margin-top:18px">Submitted details are unverified. Check that the employer is real, the role is in the Okanagan and the application route works before approving.</div>'
-        . '</td></tr><tr><td style="padding:16px 6px 0;font:12px/1.6 ' . WOGO_FONT . ';color:' . WOGO_DIM . '">'
+        . '<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-top:1px solid ' . MAIL_LINE . '">' . $rows . '</table>'
+        . '<div style="font:12px/1.5 ' . WOGO_MONO . ';color:' . MAIL_DIM . ';margin:18px 0 8px">DESCRIPTION</div>'
+        . '<div style="font:15px/1.65 ' . WOGO_FONT . ';color:' . MAIL_INK . ';background:' . MAIL_SOFT . ';border:1px solid ' . MAIL_LINE . ';border-radius:12px;padding:14px 16px">' . $desc . '</div>'
+        . '<div style="font:13px/1.6 ' . WOGO_FONT . ';color:' . MAIL_DIM . ';margin-top:18px">Submitted details are unverified. Check that the employer is real, the role is in the Okanagan and the application route works before approving.</div>'
+        . '</td></tr><tr><td style="padding:16px 8px 0;font:12px/1.6 ' . WOGO_FONT . ';color:' . MAIL_DIM . '">'
         . 'Review &amp; approve opens a page on wogopogo.ca where you press Approve or Reject; opening the email or the link changes nothing. The link works for this one listing for ' . REVIEW_LINK_DAYS . ' days. Please do not forward this email.'
         . '</td></tr></table></td></tr></table></body></html>';
 }

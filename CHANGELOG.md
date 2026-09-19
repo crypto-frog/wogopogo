@@ -4,6 +4,13 @@ Notable project changes are recorded here. The format is inspired by Keep a Chan
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-09-19
+
+### Changed
+
+- The owner email uses a light card under a charcoal Wogopogo header. Zoho's dark mode recoloured
+  the first, dark design and washed out the secondary button; the light design stays crisp.
+
 ## [1.5.0] - 2026-09-19
 
 ### Added

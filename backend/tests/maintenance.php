@@ -101,7 +101,7 @@ $rid = job($pdo, $cfg, 'Role <script>alert(1)</script> & co');
 $msg = wogo_notification_message(wogo_review_job($pdo, $rid), $cfg);
 check(str_contains($msg['body'], 'https://wogopogo.ca/api/review?t=' . $rid . '.'), 'Plain text carries the signed review link');
 check(str_contains($msg['body'], '/admin?job=' . $rid), 'Plain text keeps the admin link');
-check(str_contains($msg['html'], 'Review &amp; approve') && str_contains($msg['html'], '#aab8d2'), 'HTML email is branded with a review button');
+check(str_contains($msg['html'], 'Review &amp; approve') && str_contains($msg['html'], '#16181c') && str_contains($msg['html'], '#2f4a78'), 'HTML email is branded with a review button');
 check(!str_contains($msg['html'], '<script>alert') && str_contains($msg['html'], '&lt;script&gt;'), 'Submitted text is escaped in the HTML email');
 check(!str_contains($msg['html'], 'synthetic-admin-key') && !str_contains($msg['body'], 'synthetic-admin-key'), 'Admin key never appears in email');
 preg_match('/t=([0-9A-Za-z._-]+)/', $msg['body'], $m); $token = $m[1];
