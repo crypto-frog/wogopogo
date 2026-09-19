@@ -4,6 +4,20 @@ Notable project changes are recorded here. The format is inspired by Keep a Chan
 
 ## [Unreleased]
 
+### Added
+
+- `ops/refresh-gate.php`: forced-command SSH gate for the unattended refresh agent on the
+  owner's VPS. Allows reads, `job:verify`, `job:act` approve/reject/close/renew and `job:import`
+  only; fixes the actor; kill switch; 150 changes per 24 hours; daily pre-change export; a
+  per-call ledger; and an independent re-fetch of every imported source page, refusing any job
+  the page does not name. 28 checks in `backend/tests/refresh-gate.php` (run in CI).
+- `docs/WEEKLY-REFRESH.md`: the runbook for the review, removal and addition run every five days.
+- `docs/MAINTENANCE-2026-09-19.md`: the September 19 run.
+
+### Changed
+
+- `docs/MAIL.md`: documents the signed one-click review link and the real 21-minute schedule.
+
 ## [1.5.1] - 2026-09-19
 
 ### Changed

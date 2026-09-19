@@ -24,6 +24,8 @@ These instructions apply to the entire repository. They are written for AI agent
 - `ops/wogopogo.php`: private JSON CLI for SSH-based management. Install it outside `public_html`.
 - `ops/job-import.schema.json`: versioned import-manifest contract.
 - `AI-OPERATIONS.md`: operational runbook for agents and maintainers.
+- `docs/WEEKLY-REFRESH.md`: the review, removal and addition run, every five days (automated on the owner's VPS through `ops/refresh-gate.php`). Read it before touching job data.
+- `ops/refresh-gate.php`: SSH forced-command gate for the VPS refresh agent; tests in `backend/tests/refresh-gate.php`.
 
 Production currently uses:
 

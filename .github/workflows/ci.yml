@@ -72,6 +72,9 @@ jobs:
       - name: Verify submission outbox and deadline handling
         run: php backend/tests/maintenance.php
 
+      - name: Verify the VPS refresh gate
+        run: php backend/tests/refresh-gate.php
+
       - name: Verify real API and CLI workflows with an isolated mail capture
         run: python3 backend/tests/integration.py
 

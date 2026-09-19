@@ -16,11 +16,22 @@ Keep actual account IDs, grants, mail bodies, DNS receipts and backups private.
 
 1. The public form validates the job and creates a pending listing.
 2. The same database transaction records a notification in `submission_notifications`.
-3. The private one-minute worker hands a plain-text review email to Bluehost's MTA,
-   addressed to the Zoho contact. Public requests do not wait for mail delivery.
-4. The email includes submitted fields and `/admin?job=ID`. Admin authentication and
-   an explicit approval are still required. Tokens and the admin key are never emailed.
-5. The admin screen highlights and expands the selected pending listing.
+3. The private worker hands the review email to Bluehost's MTA, addressed to the Zoho
+   contact. Public requests do not wait for mail delivery. Production runs the worker every
+   21 minutes (`*/21 * * * *`), so an email can take up to about 20 minutes; run
+   `notification:send` by hand for an immediate send.
+4. The email (since 1.5.0) is multipart: a light Wogopogo-branded HTML card with the submitted
+   fields and description, and a plain-text copy. It has two buttons:
+   - **Review & approve** opens `/api/review?t=ID.EXPIRES.SIGNATURE`, a page for that one
+     listing. Opening it (including by a mail scanner) changes nothing. Pressing Approve or
+     Reject on the page (a POST) records the decision in the audit trail as `owner-email-link`,
+     with an optional note. The link is signed with HMAC-SHA256 using a key derived from the
+     server-only admin key, works for 14 days, only for that listing and only while it is a
+     pending public submission. Imported listings can never be approved through a link.
+     Changing the admin key revokes every outstanding link. The admin key itself is never emailed.
+   - **Open in admin** goes to `/admin?job=ID` (admin authentication required), which
+     highlights and expands the listing.
+5. If no admin key is configured the email falls back to the admin link only.
 
 Imports do not generate submission emails. Already moderated, removed or non-public
 records cancel their pending notifications. Applicant-controlled data stays in the
@@ -43,8 +54,10 @@ Install `ops/wogopogo.php` and `ops/notify-submissions.sh` together in
 `~/wogopogo_ops`, mode 700, outside the web root. Add one scoped crontab entry:
 
 ```cron
-* * * * * /bin/bash "$HOME/wogopogo_ops/notify-submissions.sh" >/dev/null 2>&1
+*/21 * * * * /bin/bash "$HOME/wogopogo_ops/notify-submissions.sh" >/dev/null 2>&1
 ```
+
+(Production uses `*/21`; `* * * * *` also works and sends within a minute.)
 
 Preserve unrelated crontab entries. The runner uses an account-private lock, a bounded
 batch of ten and a 60-second timeout. Its latest success/error receipts replace previous
