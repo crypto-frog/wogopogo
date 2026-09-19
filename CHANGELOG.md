@@ -4,6 +4,20 @@ Notable project changes are recorded here. The format is inspired by Keep a Chan
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-09-19
+
+### Added
+
+- Branded HTML owner email for each public job submission (plain-text alternative kept), in the
+  Wogopogo dark style, with a **Review & approve** button.
+- `GET/POST /api/review`: a signed, single-listing review page. Opening it changes nothing;
+  Approve or Reject on the page records the decision through the same update and audit trail as
+  the admin panel (actor `owner-email-link`). Tokens expire after 14 days, are bound to one
+  listing, and are signed with a key derived from the server-only admin key (never emailed).
+  Imported listings can never be approved through a link.
+- 17 backend and 7 integration checks for tokens, escaping, decisions and the HTTP flow.
+
+
 ### Documentation
 
 - Defined private origin invariants and separate maintenance lifecycles for agent-imported and organic job postings

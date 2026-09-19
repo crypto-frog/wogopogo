@@ -11,6 +11,8 @@
  *   POST /jobs/{id}/manage        poster actions with their manage token: close | delete
  *   GET  /admin/jobs              moderation list (X-Admin-Key)
  *   POST /admin/jobs/{id}         admin actions: approve | reject | feature | unfeature | close | renew | delete
+ *   GET  /review?t=               owner review page from the notification email (signed, one listing)
+ *   POST /review                  Approve or Reject pressed on that page (see review.php)
  */
 
 declare(strict_types=1);
@@ -38,6 +40,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
 require __DIR__ . '/helpers.php';
 require __DIR__ . '/db.php';
 require __DIR__ . '/notifications.php';
+require_once __DIR__ . '/review.php';
 
 set_exception_handler(function (Throwable $e) {
     error_log(
@@ -98,6 +101,11 @@ if (($route === '' || $route === 'health') && $method === 'GET') {
 }
 
 $pdo = wogo_db($cfg);
+
+// ---------------------------------------------------------------- owner review link (HTML)
+if ($route === 'review' && in_array($method, ['GET', 'POST'], true)) {
+    wogo_review_route($pdo, $cfg, $method);
+}
 
 // ------------------------------------------------------------------ meta
 if ($route === 'meta' && $method === 'GET') {

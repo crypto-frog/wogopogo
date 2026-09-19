@@ -31,7 +31,7 @@ for (const name of [
   fs.copyFileSync(path.join(dist, name), path.join(deploy, name))
 }
 
-for (const name of ['config.php', 'db.php', 'helpers.php', 'index.php', 'notifications.php']) {
+for (const name of ['config.php', 'db.php', 'helpers.php', 'index.php', 'notifications.php', 'review.php']) {
   fs.copyFileSync(path.join(root, 'backend', 'api', name), path.join(deploy, 'api', name))
 }
 

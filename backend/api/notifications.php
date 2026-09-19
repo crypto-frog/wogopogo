@@ -2,6 +2,8 @@
 /** Transactional submission outbox. Only the private CLI delivers mail. */
 declare(strict_types=1);
 
+require_once __DIR__ . '/review.php';
+
 function wogo_notification_enqueue(PDO $pdo, array $cfg, int $jobId): void
 {
     if (empty($cfg['submission_notifications']['enabled'])) {
@@ -15,13 +17,21 @@ function wogo_notification_enqueue(PDO $pdo, array $cfg, int $jobId): void
         ->execute([$jobId, 'pending', wogo_now(), '', '', '', wogo_now()]);
 }
 
-function wogo_notification_message(array $job): array
+function wogo_notification_message(array $job, array $cfg = []): array
 {
     $id = (int) $job['id'];
-    // Submitter content belongs only in the plain-text body, never mail headers.
+    // Owner request 2026-09-19: a branded HTML email with a one-click review link. The link is
+    // signed for this one listing (review.php); the admin key and manage tokens are never emailed.
+    try {
+        $review = $cfg ? wogo_review_url($cfg, $id) : 'https://wogopogo.ca/admin?job=' . $id;
+    } catch (RuntimeException $e) {
+        $review = 'https://wogopogo.ca/admin?job=' . $id; // no admin key configured: the admin screen still works
+    }
+    // Submitter content belongs only in the body, never mail headers.
     $body = "A new Wogopogo listing needs review.\n\n"
-        . "Review and approve: https://wogopogo.ca/admin?job=" . $id . "\n"
-        . "Sign in with your existing admin key. Opening this link does not approve the job.\n\n";
+        . "Review and approve: " . $review . "\n"
+        . "The link opens a page where you press Approve or Reject. Opening it changes nothing.\n"
+        . "Admin screen: https://wogopogo.ca/admin?job=" . $id . "\n\n";
     foreach (['id' => 'Listing', 'title' => 'Title', 'company' => 'Employer',
               'cat_name' => 'Category', 'location' => 'Location', 'job_type' => 'Type',
               'pay' => 'Pay', 'apply_email' => 'Application email', 'apply_url' => 'Application link',
@@ -30,7 +40,9 @@ function wogo_notification_message(array $job): array
         $body .= $label . ": " . ($value === '' ? 'Not provided' : $value) . "\n\n";
     }
     $body .= "Submitted details are unverified. Review the employer, role and application route before approval.\n";
+    $clean = array_map(static fn ($v) => is_string($v) ? str_replace("\0", '', $v) : $v, $job);
     return ['subject' => "[Wogopogo] Listing #$id awaiting review", 'body' => $body,
+            'html' => wogo_review_email_html($clean, $review),
             'message_id' => "<wogopogo-submission-$id@wogopogo.ca>"];
 }
 
@@ -43,14 +55,23 @@ function wogo_notification_transport(array $message, array $cfg): bool
             throw new RuntimeException('Notification address is not the configured owner contact.');
         }
     }
-    return mail($mail['to'], $message['subject'], $message['body'], [
-        'From' => 'Wogopogo <hello@wogopogo.ca>',
-        'MIME-Version' => '1.0',
-        'Content-Type' => 'text/plain; charset=UTF-8',
-        'Content-Transfer-Encoding' => '8bit',
-        'Message-ID' => $message['message_id'],
-        'Auto-Submitted' => 'auto-generated',
-    ], '-fhello@wogopogo.ca');
+    $headers = ['From' => 'Wogopogo <hello@wogopogo.ca>', 'MIME-Version' => '1.0',
+                'Message-ID' => $message['message_id'], 'Auto-Submitted' => 'auto-generated'];
+    $body = $message['body'];
+    if (!empty($message['html'])) {
+        // multipart/alternative: plain text first for text-only clients, the branded HTML preferred.
+        $boundary = 'wogo-' . bin2hex(random_bytes(12));
+        $headers['Content-Type'] = 'multipart/alternative; boundary="' . $boundary . '"';
+        $body = "This is a multi-part message in MIME format.\r\n\r\n"
+            . "--$boundary\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
+            . chunk_split(base64_encode($message['body'])) . "\r\n"
+            . "--$boundary\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
+            . chunk_split(base64_encode($message['html'])) . "\r\n--$boundary--\r\n";
+    } else {
+        $headers['Content-Type'] = 'text/plain; charset=UTF-8';
+        $headers['Content-Transfer-Encoding'] = '8bit';
+    }
+    return mail($mail['to'], $message['subject'], $body, $headers, '-fhello@wogopogo.ca');
 }
 
 function wogo_notification_status(PDO $pdo): array
@@ -97,7 +118,7 @@ function wogo_notification_send(PDO $pdo, array $cfg, int $limit, string $actor,
         $state = 'cancelled'; $error = ''; $sentAt = ''; $available = $now;
         if ($job && $job['status'] === 'pending' && $job['managed_origin'] === 'public' && empty($job['source_key'])) {
             try {
-                if ($transport(wogo_notification_message($job), $cfg)) {
+                if ($transport(wogo_notification_message($job, $cfg), $cfg)) {
                     $state = 'sent'; $sentAt = wogo_now();
                 } else {
                     $state = $attempts >= 5 ? 'failed' : 'pending';

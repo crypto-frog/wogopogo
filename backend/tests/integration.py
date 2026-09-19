@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -95,10 +96,39 @@ with tempfile.TemporaryDirectory(prefix='wogopogo-integration-') as temporary:
         write = ['--apply', '--actor', 'test:integration', '--reason', 'Synthetic isolated verification']
         cli('notification:send', *write)
         email = capture.read_text()
-        check('hello@wogopogo.ca' in email and f'/admin?job={job_id}' in email and 'Fixture Employer' in email, 'Actual transport creates complete owner review message')
-        check(result.get('manage_token', 'not-present') not in email and 'synthetic-admin-key-for-tests-only' not in email, 'Email does not contain access credentials')
+        from email import message_from_string, policy as email_policy
+        import re as re_lib
+        parsed = message_from_string(email[email.find('To:'):] if 'To:' in email else email, policy=email_policy.default)
+        parts = {part.get_content_type(): part.get_content() for part in parsed.walk() if part.get_content_type() in ('text/plain', 'text/html')}
+        text, html_part = parts.get('text/plain', ''), parts.get('text/html', '')
+        decoded = email + text + html_part
+        check('hello@wogopogo.ca' in email and f'/admin?job={job_id}' in text and 'Fixture Employer' in text, 'Actual transport creates complete owner review message')
+        check('multipart/alternative' in email and 'Review &amp; approve' in html_part and 'Fixture Employer' in html_part, 'Owner email includes the branded HTML version')
+        review = re_lib.search(r'https://wogopogo\.ca/api/(review\?t=[0-9A-Za-z._-]+)', text)
+        check(review is not None, 'Owner email carries a signed one-click review link')
+        check(result.get('manage_token', 'not-present') not in decoded and 'synthetic-admin-key-for-tests-only' not in decoded, 'Email does not contain access credentials')
         cli('notification:send', *write)
         check(capture.read_text() == email, 'Repeated scheduled drain does not duplicate mail')
+        page = urllib.request.urlopen(f'http://127.0.0.1:{port}/api/' + review.group(1), timeout=5)
+        body = page.read().decode()
+        check(page.status == 200 and 'Approve &amp; publish' in body and 'Fixture Employer' in body, 'Review link opens the listing with Approve and Reject')
+        check(request('jobs/' + str(job_id))[0] == 404, 'Opening the review link does not approve (mail scanners are harmless)')
+        class NoRedirect(urllib.request.HTTPRedirectHandler):
+            def redirect_request(self, *args, **kwargs): return None
+        form = urllib.parse.urlencode({'t': review.group(1).split('t=', 1)[1], 'decision': 'approve', 'note': 'fixture approved'}).encode()
+        try:
+            urllib.request.build_opener(NoRedirect).open(urllib.request.Request(f'http://127.0.0.1:{port}/api/review', form), timeout=5)
+            posted = 0
+        except urllib.error.HTTPError as error:
+            posted = error.code
+        check(posted == 303, 'Pressing Approve records the decision and redirects')
+        check(request('jobs/' + str(job_id))[0] == 200, 'The approved listing is public')
+        forged = urllib.parse.urlencode({'t': '1.9999999999.' + 'A' * 32, 'decision': 'approve'}).encode()
+        try:
+            urllib.request.urlopen(urllib.request.Request(f'http://127.0.0.1:{port}/api/review', forged), timeout=5); forged_code = 200
+        except urllib.error.HTTPError as error:
+            forged_code = error.code
+        check(forged_code == 404, 'A forged review token is refused')
         check(request('admin/jobs/' + str(job_id), {'action': 'approve'}, True)[0] == 200, 'Authenticated owner can approve emailed listing')
         public = request('jobs/' + str(job_id))[1]
         check('source_key' not in json.dumps(public) and 'manage_hash' not in json.dumps(public), 'Public response excludes operational identifiers')

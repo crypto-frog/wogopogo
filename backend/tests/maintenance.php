@@ -11,7 +11,7 @@ register_shutdown_function(static function () use ($dir): void {
     @unlink($dir . '/.htaccess'); @rmdir($dir);
 });
 $cfg = ['db_driver' => 'sqlite', 'sqlite_path' => $dir . '/test.sqlite', 'seed_demo' => false,
-        'job_lifetime_days' => 30, 'submission_notifications' => ['enabled' => true,
+        'job_lifetime_days' => 30, 'admin_key' => 'synthetic-admin-key-for-tests-only', 'submission_notifications' => ['enabled' => true,
         'to' => 'hello@wogopogo.ca', 'from' => 'hello@wogopogo.ca']];
 $pdo = wogo_db($cfg);
 $checks = 0;
@@ -95,4 +95,34 @@ check(wogo_job_expiry($cfg) > $deadline, 'Undated jobs keep normal lifetime');
 $before = (int) $pdo->query('SELECT COUNT(*) FROM jobs')->fetchColumn();
 wogo_init_schema($pdo, $cfg);
 check((int) $pdo->query('SELECT COUNT(*) FROM jobs')->fetchColumn() === $before, 'Migration preserves existing jobs');
+
+// ---- One-click review links and the branded email (2026-09-19) ---------------------------
+$rid = job($pdo, $cfg, 'Role <script>alert(1)</script> & co');
+$msg = wogo_notification_message(wogo_review_job($pdo, $rid), $cfg);
+check(str_contains($msg['body'], 'https://wogopogo.ca/api/review?t=' . $rid . '.'), 'Plain text carries the signed review link');
+check(str_contains($msg['body'], '/admin?job=' . $rid), 'Plain text keeps the admin link');
+check(str_contains($msg['html'], 'Review &amp; approve') && str_contains($msg['html'], '#aab8d2'), 'HTML email is branded with a review button');
+check(!str_contains($msg['html'], '<script>alert') && str_contains($msg['html'], '&lt;script&gt;'), 'Submitted text is escaped in the HTML email');
+check(!str_contains($msg['html'], 'synthetic-admin-key') && !str_contains($msg['body'], 'synthetic-admin-key'), 'Admin key never appears in email');
+preg_match('/t=([0-9A-Za-z._-]+)/', $msg['body'], $m); $token = $m[1];
+check(wogo_review_check($cfg, $token) === [$rid, ''], 'A fresh token names its listing');
+check(wogo_review_check($cfg, substr($token, 0, -1) . (substr($token, -1) === 'A' ? 'B' : 'A'))[1] !== '', 'A tampered token is refused');
+[$tid, $texp, $tsig] = explode('.', $token);
+check(wogo_review_check($cfg, ($rid + 1) . '.' . $texp . '.' . $tsig)[1] !== '', 'A token cannot be moved to another listing');
+check(wogo_review_check($cfg, wogo_review_token($cfg, $rid, time() - 20 * 86400))[1] !== '', 'An old token has expired');
+$other = $cfg; $other['admin_key'] = 'a-different-admin-key-for-tests';
+check(wogo_review_check($other, $token)[1] !== '', 'Changing the admin key revokes old links');
+check(wogo_review_decide($pdo, $cfg, wogo_review_job($pdo, $rid), 'approve', 'looks real') === 'approved', 'Approve from the review page');
+$row = wogo_review_job($pdo, $rid);
+check($row['status'] === 'approved' && $row['expires_at'] > wogo_now(), 'Approval publishes with a fresh lifetime');
+$audit = $pdo->prepare("SELECT actor, action, reason FROM ops_audit WHERE entity_id = ? ORDER BY id DESC LIMIT 1"); $audit->execute([$rid]); $a = $audit->fetch();
+check($a && $a['actor'] === 'owner-email-link' && $a['action'] === 'job.approve' && str_contains($a['reason'], 'looks real'), 'Decision is in the audit trail');
+check(wogo_review_decide($pdo, $cfg, $row, 'reject', '') === 'unchanged', 'A decided listing cannot be decided again');
+$rej = job($pdo, $cfg, 'Second synthetic role');
+check(wogo_review_decide($pdo, $cfg, wogo_review_job($pdo, $rej), 'reject', '') === 'rejected' && wogo_review_job($pdo, $rej)['status'] === 'rejected', 'Reject from the review page');
+$imp = job($pdo, $cfg, 'Imported synthetic role');
+$pdo->prepare("UPDATE jobs SET managed_origin = 'agent-import', source_key = 'test:1' WHERE id = ?")->execute([$imp]);
+check(wogo_review_decide($pdo, $cfg, wogo_review_job($pdo, $imp), 'approve', '') === 'unchanged', 'Imported listings are never approved through a link');
+$nokey = $cfg; unset($nokey['admin_key']);
+check(str_contains(wogo_notification_message(wogo_review_job($pdo, $rej), $nokey)['body'], '/admin?job=' . $rej), 'Without an admin key the email still sends with the admin link');
 echo json_encode(['passed' => $checks, 'real_emails' => 0]) . PHP_EOL;
