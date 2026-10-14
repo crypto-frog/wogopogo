@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { SerpentMark } from './Serpent.jsx'
 import { TINTS } from '../theme.js'
-import LakeDashLauncher from '../features/lake-dash/LakeDashLauncher.jsx'
+import { UprightLauncher } from '../features/upright'
 
 export default function Header({ theme, tint, onToggleTheme, onTintChange }) {
   const [tintMenuOpen, setTintMenuOpen] = useState(false)
@@ -117,7 +117,7 @@ export default function Header({ theme, tint, onToggleTheme, onTintChange }) {
               </div>
             )}
           </div>
-          <LakeDashLauncher />
+          <UprightLauncher />
           <button
             type="button"
             className="theme-toggle"

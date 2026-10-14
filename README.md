@@ -18,7 +18,7 @@ Wogopogo is a free, account-free community job board for British Columbia's Okan
 - Source provenance and verification state for carefully aggregated public listings
 - Per-IP rate limits and a honeypot submission field
 - Dark and light appearances with restrained colour accents
-- A tint-aware, lazy-loaded Lake Dash microgame with local-only scores
+- A tint-aware, lazy-loaded UPRIGHT tower-stacking game with local-only scores
 - Keyboard-accessible controls, visible focus states, and responsive layouts
 - Server-rendered public job pages with canonical metadata and JobPosting JSON-LD
 - A database-driven XML sitemap and deliberate crawler directives
