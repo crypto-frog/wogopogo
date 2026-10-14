@@ -16,6 +16,10 @@ Notable project changes are recorded here. The format is inspired by Keep a Chan
 
 ### Changed
 
+- Replace Lake Dash with the law-office UPRIGHT tower-stacking game, adapted to
+  Wogopogo's fonts, serpent mark, seven tints, and light/dark appearances. Preserve
+  lazy loading, local-only scores, optional sound, keyboard controls, and mobile play.
+- Update the build-only `source-map-js` dependency to its patched 1.2.2 release.
 - `docs/MAIL.md`: documents the signed one-click review link and the real 21-minute schedule.
 
 ## [1.5.1] - 2026-09-19
