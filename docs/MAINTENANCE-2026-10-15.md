@@ -65,3 +65,22 @@ and the private management link. Private origin-control fields remain private.
 The immediate refresh was performed directly by the maintainer. Starting an extra VPS service
 instance requires the owner's local sudo authentication, which was unavailable in this session;
 no extra service run was started and no schedule or privileges were changed.
+
+## Release verification
+
+Website commit `352921eb5bf66bd874feca8e4ce1af81f378b477` passed all GitHub quality checks:
+React contracts and build, production dependency audit, PHP syntax, maintenance, refresh-gate,
+API/CLI integration, cron integration, and publication safety. Nine frontend tests include
+calendar-date coverage across time zones; original source dates no longer shift a day for
+visitors west of UTC. Imported job pages no longer present the board's internal expiration
+as the employer's application deadline.
+
+The immutable release passed shared-host PHP lint, CLI status and server-render checks before
+activation. The previous release was retained for rollback. Public health, metadata, homepage,
+job detail, sitemap and new assets passed after activation. A rendered browser check confirmed
+the 89-job total, new source attribution, correct original dates, search, application route and
+free-posting entry points. The final production audit again reported zero errors and warnings.
+
+The shared host's standalone refresh-gate test encountered its existing iconv/locale difference;
+the same unchanged test passed in the release's supported GitHub PHP environment. The host's
+Python 3.6 cannot run the integration harness; the full API/CLI and cron suites passed in CI.
