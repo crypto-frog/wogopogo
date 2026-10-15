@@ -20,6 +20,8 @@ The first full run under this runbook is recorded in `docs/MAINTENANCE-2026-09-1
 3. Every **category has at least two live jobs** (aim for 6 to 10), each one a real posting
    found on the internet during this run, checked against its source.
 4. `audit:jobs` ends with **0 errors**, and a report says exactly what changed and why.
+5. The board draws from **independent public sources**, including employers' own careers
+   pages. Every run searches beyond Job Bank and reports its source mix and any coverage gaps.
 
 ## Hard rules
 
@@ -83,8 +85,10 @@ For each job with `status = approved` and a `source_key`, open its `source_url` 
   `property="validThrough"` (the "Advertised until" date D), `property="title"`,
   `property="hiringOrganization"` and `property="baseSalary"`. The Job Bank number appears as
   `<span>Job Bank</span> <span>#NNN</span>`.
-- If D is today or later the job is **active**, with deadline `D+1 07:00:00` UTC (end of D in
-  Pacific time). Example: advertised until 2026-10-02 gives `2026-10-03 07:00:00`.
+- If D is today or later the job is **active**. Convert midnight after D from
+  `America/Vancouver` to UTC (07:00 during daylight time, 08:00 during standard time).
+  Preserve an explicit closing time. Example: advertised until 2026-10-02 gives
+  `2026-10-03 07:00:00`; November 5 gives `2026-11-06 08:00:00`.
 - If D is before today on a page that still loads, the posting is **closed**.
 
 **Lever** (`lever:...`, `jobs.lever.co`): 404 means closed; 200 with the posting means active.
@@ -121,8 +125,45 @@ means `status = approved` and `expires_at` in the future). Bring every category 
 2**, and aim for 6 to 10 where good postings exist. Categories: wine, agriculture, hospitality,
 tourism, health, trades, tech, retail, education, transport, office, arts, labour, other.
 
-**Where to look.** Job Bank is the most reliable source and its pages pass the automated source
-check. Search by city with the `locationparam` id (the free-text location is ignored):
+### Required source-diversity pass
+
+Do this on **every run**, even when every category already has two jobs. Read
+[`JOB-SOURCES.md`](JOB-SOURCES.md), search at least four independent publishers, including
+at least three employer-operated careers sites, and open individual postings before importing.
+Rotate employers, communities and sectors; one large employer must not become the replacement
+for a single dominant job board. Public search engines are discovery aids, not verification.
+
+For new additions, aim for **at least half from outside Job Bank**, spanning **at least three
+independent publishers** when suitable current postings are available. Count a publisher by
+the organization responsible for the posting: two employers using Lever are independent;
+Job Bank provincial subdomains and mirrors of one vacancy are not. If Job Bank exceeds 60%
+of live sourced listings, prioritize verified non-Job-Bank additions over further Job Bank
+top-ups. Never close a valid job, duplicate a role, mislabel its source, or lower verification
+standards to hit a ratio. These are coverage goals, not quotas that justify invented jobs.
+
+Record each publisher searched, its URL, when checked, candidates considered, accepted jobs,
+and specific reasons for rejection or access failure in `source-search.json`. Report the
+before/after live counts by publisher, Job Bank share, and distinct publishers among additions.
+If the target cannot be met, identify the gap in `report.json.issues` and its summary. Do not
+report an all-Job-Bank top-up as a completed diversity pass without the attempted-source evidence.
+The existing runner accepts additional report fields: put these figures in `source_diversity`.
+
+Prefer the employer's exact application page as `source_url` and `apply_url` when it is
+accessible and verified. Credit the actual publisher in `source_name` (for example,
+`City of Kelowna careers`), not a generic label such as "public sources". ATS/API metadata
+may corroborate an original posting date; a closing/start date or today's audit date cannot
+replace it. If the contract requires a date the publisher does not disclose, skip the import
+and report that limitation. Keep paraphrased summaries and material requirements accurate.
+
+All newly added sources enter the **same Step 2 lifecycle on subsequent runs**: check the
+original posting, carry forward verified deadline extensions, renew open jobs as needed,
+close confirmed removals, and investigate unreachable pages. Do not fall back to importing
+a Job Bank mirror just because the original employer page needs additional investigation.
+
+### Job Bank as a supplementary source
+
+Use Job Bank alongside the employer-source pass, particularly for uncovered categories.
+Search by city with the `locationparam` id (the free-text location is ignored):
 
 | City | id | City | id |
 | --- | --- | --- | --- |
@@ -140,8 +181,8 @@ curl -s 'https://www.jobbank.gc.ca/jobsearch/jobsearch?searchstring=&locationstr
 
 (`sort=D` lists the newest first, 25 per page. Put a keyword in `searchstring=cook` to narrow a
 category. Checked on 2026-09-19.)
-Other good sources: Okanagan College on Lever (`jobs.lever.co/okanagan`), municipal postings
-mirrored on Job Bank, and employers' own careers pages when they are plain HTML.
+Employer careers pages, their public applicant-tracking systems, and independent regional
+boards are the other required discovery channels; see `JOB-SOURCES.md`.
 
 **Accept a posting only if** it is open now, in the region, posted or re-verified in the last 30
 days, names a real employer, and has a working way to apply (the Job Bank page itself is a
@@ -149,8 +190,11 @@ valid apply link). Job Bank "licensed third-party" postings are acceptable when 
 real employer; mention it in the description. Skip postings that charge applicants, recruit
 for unnamed clients, or are commission-only sales.
 
-**Avoid duplicates:** check the Job Bank number and the (employer, title, city) against
-`before.json`, including closed jobs; a new Job Bank number for the same role is a new posting.
+**Avoid duplicates across sources:** compare the requisition number, application URL and
+normalized (employer, title, city) against `before.json` and this run's candidates. A new board
+ID or a second publisher is not by itself a new vacancy. Keep one live record for the same
+role; investigate ambiguous matches. Do not change existing source keys to manufacture new
+additions. A genuine new recruitment round must be supported by the employer's current page.
 
 **Manifest (version 1).** One object per job:
 
@@ -204,7 +248,7 @@ wogo job:export --status all --limit 5000 > after.json
 ```
 
 Open https://wogopogo.ca/ and two or three new job pages to confirm they appear. Then write
-the report (the VPS run writes `report.json`; a human run writes a dated
+the report, including source-diversity results and search limitations (the VPS run writes `report.json`; a human run writes a dated
 `docs/MAINTENANCE-YYYY-MM-DD.md` with no private data).
 
 ## Automation on the VPS

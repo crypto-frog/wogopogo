@@ -147,7 +147,7 @@ Never edit a past release in place, never upload `config.local.php` from a works
 1. Run `status` and `capabilities`, then create a private timestamped export outside both the repository and web root.
 2. Partition records by the private origin invariant and inspect the pending organic queue separately.
 3. Re-open every approved agent-import source. Record `active` only after a current-page check; record `closed` when the source says it is filled, expired, cancelled, or no longer accepting applications; treat access failures as `unreachable` and investigate further.
-4. Build and schema-check the new-import manifest, confirm the requested new count in every category, dry-run it, and review all create/update/skip actions.
+4. Run the mandatory independent-source search in `docs/WEEKLY-REFRESH.md` using `docs/JOB-SOURCES.md`, even when category minimums are met. Record publishers searched, cross-source duplicate checks, and before/after source concentration. Build and schema-check the new-import manifest, confirm any requested new count in every category, dry-run it, and review all create/update/skip actions.
 5. Apply with a stable actor and specific reason. Prefer closing stale imports over deleting them so provenance and audit history remain intact.
 6. Moderate organic submissions without changing their origin or rewriting them as imports. Leave uncertain cases pending for the owner.
 7. Run `audit:jobs`, inspect the private counts, verify the public API and sample job pages, and re-open newly published source URLs.
