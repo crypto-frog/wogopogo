@@ -11,6 +11,7 @@ local work location, application route, original date and deadline during each r
 | Interior Health | https://jobs.interiorhealth.ca/ | Clinical, support, trades and office roles. Filter to supported local communities; inspect each competition's closing date and employment type. |
 | Big White Ski Resort | https://www.bigwhite.com/employment-centre/jobs-at-big-white | Seasonal tourism, hospitality, retail and facilities. Follow Current Job Postings to the employer's ATS; the recruitment calendar is not an individual vacancy. |
 | YMCA of Southern Interior BC | https://www.ymcasibc.ca/Join/Our-Team/Careers | Childcare, aquatics, recreation and administration. Follow the employer-linked public opportunities portal and check the actual location. |
+| BGC Okanagan | https://bgcokanagan.bamboohr.com/careers | Childcare, family services and recreation. Individual pages require JavaScript; verify through a rendered browser when available. Without readable evidence, record unreachable and report for follow-up. |
 | Other local employers and regional boards | Search the employer's official website and public careers links | Rotate municipalities, schools, wineries, farms, nonprofits and private businesses across the valley. Do not treat mirrored copies as distinct opportunities. |
 | Job Bank | https://www.jobbank.gc.ca/jobsearch/ | Supplement coverage after the independent-source search; retain precise original attribution and application links. |
 

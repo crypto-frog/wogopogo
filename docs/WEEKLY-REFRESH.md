@@ -146,7 +146,9 @@ and specific reasons for rejection or access failure in `source-search.json`. Re
 before/after live counts by publisher, Job Bank share, and distinct publishers among additions.
 If the target cannot be met, identify the gap in `report.json.issues` and its summary. Do not
 report an all-Job-Bank top-up as a completed diversity pass without the attempted-source evidence.
-The existing runner accepts additional report fields: put these figures in `source_diversity`.
+Put the detailed figures in `report.json.source_diversity`. Also include the before/after
+concentration and any unmet target in `summary` and `issues`: the existing runner preserves
+the raw report, but its console summary only carries the standard report fields.
 
 Prefer the employer's exact application page as `source_url` and `apply_url` when it is
 accessible and verified. Credit the actual publisher in `source_name` (for example,

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../api.js'
-import { copyText, jobPath, parseUtc, shortDate, timeAgo } from '../util.js'
+import { copyText, jobPath, parseUtc, shortDate, sourceDate, timeAgo } from '../util.js'
 import { SerpentPeek } from '../components/Serpent.jsx'
 import AdSlot from '../components/AdSlot.jsx'
 import { applySeo, conciseDescription, removeStructuredData, setStructuredData } from '../seo.js'
@@ -202,9 +202,9 @@ export default function JobDetail() {
         )}
         <span className="dot">·</span>{' '}
         {job.source?.posted_at
-          ? `originally posted ${shortDate(`${job.source.posted_at} 00:00:00`)}`
+          ? `originally posted ${sourceDate(job.source.posted_at)}`
           : `posted ${timeAgo(job.created_at)}`}
-        <span className="dot">·</span> open until {shortDate(job.expires_at)}
+        {!job.source?.url && <><span className="dot">·</span> listing expires {shortDate(job.expires_at)}</>}
       </p>
 
       <div className="detail-body">
@@ -244,6 +244,9 @@ export default function JobDetail() {
               {job.source.status === 'unreachable' && ' · the source could not be reached during that check'}
             </p>
           )}
+          {job.source?.url && (
+            <p className="apply-note muted">This is a summary of a public posting. Read the original for full requirements, application instructions and current availability.</p>
+          )}
           <p className="apply-note muted">
             {isLive
               ? 'Wogopogo never handles applications. You deal directly with the employer.'
@@ -253,6 +256,11 @@ export default function JobDetail() {
           </p>
           {shareError && <p className="err" role="alert">{shareError}</p>}
         </aside>
+      </div>
+
+      <div className="employer-invite">
+        <div><h2>Have a local opening of your own?</h2><p>Post it directly on Wogopogo for free. No account needed.</p></div>
+        <Link className="btn btn-primary" to="/post">Post a job</Link>
       </div>
 
       <AdSlot slot="detail" />

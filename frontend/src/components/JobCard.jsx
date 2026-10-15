@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
-import { jobPath, timeAgo } from '../util.js'
+import { jobPath, shortDate, sourceDate, timeAgo } from '../util.js'
 
 export default function JobCard({ job }) {
   const featured = job.tier === 'featured'
+  const postedLabel = job.source?.posted_at ? `Posted ${sourceDate(job.source.posted_at)}` : timeAgo(job.created_at)
   return (
     <Link to={jobPath(job)} className={'card' + (featured ? ' card-featured' : '')}>
       <div className="card-top">
@@ -12,7 +13,7 @@ export default function JobCard({ job }) {
         {featured ? (
           <span className="badge-featured mono">Featured</span>
         ) : (
-          <span className="card-time mono">{timeAgo(job.created_at)}</span>
+          <span className="card-time mono">{postedLabel}</span>
         )}
       </div>
       <h3 className="card-title">{job.title}</h3>
@@ -27,7 +28,16 @@ export default function JobCard({ job }) {
           </>
         ) : null}
       </p>
-      {featured ? <span className="card-time mono card-time-featured">{timeAgo(job.created_at)}</span> : null}
+      {job.source?.name && (
+        <p className="card-source">
+          Source: {job.source.name}
+          {job.source.verified_at && (
+            <span>{job.source.status === 'active' ? 'Checked' : 'Last check'} {shortDate(job.source.verified_at)}
+              {job.source.status === 'unreachable' ? ' · source unavailable' : ''}</span>
+          )}
+        </p>
+      )}
+      {featured ? <span className="card-time mono card-time-featured">{postedLabel}</span> : null}
     </Link>
   )
 }

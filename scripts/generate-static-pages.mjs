@@ -57,8 +57,9 @@ const homeFallback = `
           <p>There are no active listings right now. Employers can submit the first local opportunity for review.</p>
         </section>
         <section class="home-guide" aria-labelledby="static-guide-title"><div class="shell">
-          <h2 id="static-guide-title">A straightforward local job board</h2>
-          <p>Job seekers browse without an account. Employers post directly, keep a private management token, and close a listing when the position is filled.</p>
+          <h2 id="static-guide-title">Local opportunities. Clear sources.</h2>
+          <p>Wogopogo brings together employer submissions and selected openings from public job boards and employers’ own careers pages. Sourced listings credit the publisher and link to the original. We review sources every five days and take down jobs confirmed closed.</p>
+          <p>Employers can post directly for free, receive applications through their own email or hiring page, and use their private management link to close a filled role.</p>
         </div></section>
       </main>`
 

@@ -210,7 +210,8 @@ export default function PostJob() {
     <div className="shell page page-narrow">
       <h1 className="page-title">Post a job</h1>
       <p className="lede">
-        Free, no account needed. Fill this in, get a manage token, done.
+        Reach people looking for work in the Okanagan and Shuswap. Posting is free,
+        no account is needed, and applications go straight to your email or hiring page.
         {meta?.require_approval ? ' Listings are reviewed before going live.' : ''}
       </p>
 
@@ -221,7 +222,7 @@ export default function PostJob() {
       )}
 
       <form className="form" onSubmit={submit} noValidate>
-        <p className="muted">Your listing details are emailed to Wogopogo’s reviewer through Zoho Mail.
+        <p className="muted">Keep the private management link shown after submission so you can close your listing when the role is filled.
           Questions? <a href="mailto:hello@wogopogo.ca">hello@wogopogo.ca</a>.</p>
         <div className="field">
           <label htmlFor="f-title">Job title</label>

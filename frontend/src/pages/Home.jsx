@@ -111,8 +111,12 @@ export default function Home() {
           <h1 className="hero-title">Local jobs.</h1>
           <p className="hero-sub">
             Find work, or find your next hire, anywhere from Osoyoos to Salmon Arm.
-            No accounts, no fees, no nonsense.
+            Employer postings and opportunities selected from public careers sites, all in one local board.
           </p>
+          <div className="hero-actions">
+            <Link className="btn btn-primary" to="/post">Post a job for free</Link>
+            <a className="community-link" href="#home-guide-title">How listings are checked</a>
+          </div>
           <form className="searchbar" role="search" onSubmit={submitSearch}>
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="search-icon">
               <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" strokeWidth="2" />
@@ -297,24 +301,32 @@ export default function Home() {
       <section className="home-guide" aria-labelledby="home-guide-title">
         <div className="shell">
           <p className="mono home-guide-kicker">How Wogopogo works</p>
-          <h2 id="home-guide-title">A straightforward Okanagan job board</h2>
+          <h2 id="home-guide-title">Local opportunities. Clear sources.</h2>
           <p className="home-guide-intro">
-            Browse approved, current opportunities across the Okanagan Valley. Employers can
-            post directly, and job seekers can search without creating an account.
+            Wogopogo brings together employer submissions and selected openings from public
+            job boards and employers’ own careers pages. Browse without an account and
+            follow each listing to the original application route.
           </p>
           <div className="home-guide-grid">
             <article>
-              <h3>For job seekers</h3>
-              <p>Search by keyword, category, location, or job type. Applications go directly to the employer.</p>
+              <h3>Know where a job comes from</h3>
+              <p>Sourced listings credit the publisher, link to the original posting, and show the last source check. Our short summaries help you compare local roles.</p>
             </article>
             <article>
-              <h3>For employers</h3>
-              <p>Post a local role for free, keep the private manage token, and close the listing when it is filled.</p>
+              <h3>Checked regularly</h3>
+              <p>We review sources every five days, update verified deadlines, and take down jobs confirmed closed. Read the original posting for full requirements and the latest availability.</p>
             </article>
             <article>
-              <h3>Local coverage</h3>
-              <p>Wogopogo serves communities from Osoyoos to Salmon Arm, including Kelowna and Vernon.</p>
+              <h3>Built for local employers, too</h3>
+              <p>You can post here directly for free. No account is needed, applications go to you, and your private management link lets you close a filled role.</p>
             </article>
+          </div>
+          <div className="employer-invite">
+            <div>
+              <h3>Hiring in the Okanagan or Shuswap?</h3>
+              <p>Add your opening to the community board. Every submission is reviewed before it appears.</p>
+            </div>
+            <Link className="btn btn-primary" to="/post">Post your opening</Link>
           </div>
         </div>
       </section>

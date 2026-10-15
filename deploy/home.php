@@ -39,7 +39,8 @@ try {
     $pdo = wogo_db($cfg);
     $stmt = $pdo->prepare(
         "SELECT j.id, j.title, j.company, j.location, j.job_type, j.pay,
-                j.description, j.created_at, c.name AS cat_name, c.emoji AS cat_emoji
+                j.description, j.created_at, j.source_name, j.source_verified_at,
+                c.name AS cat_name, c.emoji AS cat_emoji
            FROM jobs j JOIN categories c ON c.id = j.category_id
           WHERE j.status = 'approved' AND j.expires_at > ?
           ORDER BY CASE WHEN j.tier = 'featured' THEN 0 ELSE 1 END, j.created_at DESC
@@ -68,6 +69,11 @@ foreach ($jobs as $job) {
         . '<p class="card-meta mono">' . wogo_home_html((string) $job['location']) . ' · '
         . wogo_home_html((string) $job['job_type'])
         . ($pay !== '' ? ' · ' . wogo_home_html($pay) : '') . '</p>'
+        . (!empty($job['source_name']) ? '<p class="card-source">Source: '
+            . wogo_home_html((string) $job['source_name'])
+            . (!empty($job['source_verified_at']) ? '<span>Last check '
+                . wogo_home_html(substr((string) $job['source_verified_at'], 0, 10)) . '</span>' : '')
+            . '</p>' : '')
         . '</a>';
 }
 
@@ -84,18 +90,23 @@ $fallback = '<main id="main-content">'
     . '<p class="hero-eyebrow mono">Okanagan Valley · free job board</p>'
     . '<h1 class="hero-title">Local jobs.</h1>'
     . '<p class="hero-sub">Find work, or find your next hire, anywhere from Osoyoos to Salmon Arm. '
-    . 'No accounts, no fees, no nonsense.</p>'
+    . 'Employer postings and opportunities selected from public careers sites, all in one local board.</p>'
     . '<p><a class="btn btn-primary" href="/post">Post a job for free</a></p>'
     . '</div></section>'
     . '<section class="shell listing-section" aria-labelledby="server-job-list-title">'
-    . '<h2 id="server-job-list-title" class="results-meta mono">' . $count . ' active '
-    . ($count === 1 ? 'job' : 'jobs') . ' on the board</h2>'
+    . '<h2 id="server-job-list-title" class="results-meta mono">' . $count . ' recent active '
+    . ($count === 1 ? 'job' : 'jobs') . '</h2>'
     . '<div class="grid">' . $jobMarkup . '</div>'
     . '</section>'
     . '<section class="home-guide" aria-labelledby="server-guide-title"><div class="shell">'
-    . '<h2 id="server-guide-title">A straightforward Okanagan job board</h2>'
-    . '<p>Job seekers browse without an account. Employers post directly, keep a private management '
-    . 'token, and close a listing when the position is filled.</p>'
+    . '<h2 id="server-guide-title">Local opportunities. Clear sources.</h2>'
+    . '<p>Wogopogo brings together employer submissions and selected openings from public job boards '
+    . 'and employers’ own careers pages. Sourced listings credit the publisher and link to the original.</p>'
+    . '<p>We review sources every five days, update verified deadlines, and take down jobs confirmed closed. '
+    . 'Read the original posting for full requirements and current availability.</p>'
+    . '<p>Hiring locally? Post directly for free, receive applications through your own email or hiring page, '
+    . 'and keep your private management link to close a filled role.</p>'
+    . '<p><a class="btn btn-primary" href="/post">Post your opening</a></p>'
     . '</div></section>'
     . '</main><footer class="site-footer"><p class="shell footer-fine">Questions? '
     . '<a href="mailto:hello@wogopogo.ca">hello@wogopogo.ca</a></p></footer>';

@@ -25,6 +25,16 @@ export function shortDate(s) {
   return d.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+// An employer's posting date is a calendar date, not a UTC timestamp.
+export function sourceDate(s) {
+  if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return ''
+  const d = new Date(`${s}T00:00:00Z`)
+  if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== s) return ''
+  return d.toLocaleDateString('en-CA', {
+    month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
+  })
+}
+
 export async function copyText(text) {
   try {
     await navigator.clipboard.writeText(text)
